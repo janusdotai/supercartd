@@ -124,3 +124,11 @@ This platfrom was built with [Svelte](https://svelte.dev) and [Motoko](https://i
 - Use public, well known, reliable RPCs for transactions and rely on client wallets/biometrics for end user security
 - Utilize the best aspects of the Internet Computer such as fast finality, cheap transactions and native multichain to do most of the heavy lifting
 - Use and support the most common wallets and connectors and minimize overall trust assumptions
+
+# Demos
+
+![Demo 1](/docs/scdemo1.gif)
+
+![Demo 2](/docs/scdemo2.gif)
+
+![Demo 3](/docs/scdemo3.PNG)
