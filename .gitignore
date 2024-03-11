@@ -1,0 +1,45 @@
+# Various IDEs and Editors
+.vscode/
+.idea/
+**/*~
+
+# Mac OSX temporary files
+.DS_Store
+**/.DS_Store
+
+# dfx temporary files
+.dfx/
+
+# frontend code
+node_modules/
+dist/
+
+.env
+*.env
+*.env.dev
+*.env.production
+*.local
+
+*.py
+*.test
+*.txt
+
+src/declarations
+
+.mops
+.mops/
+
+.attrs
+*.attrs
+
+*.wasm
+*.wasm.gz
+
+*.csv
+*.xlsx
+
+.vscode/settings.json
+*.vscode/settings.json
+
+internet_identity.did
+internet_identity.wasm

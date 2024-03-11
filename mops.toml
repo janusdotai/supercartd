@@ -1,0 +1,6 @@
+[dependencies]
+base = "0.10.4"
+map = "9.0.1"
+sha2 = "0.0.4"
+serde = "2.2.0"
+evm-txs = "0.1.3"

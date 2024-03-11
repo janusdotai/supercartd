@@ -1,0 +1,46 @@
+
+html,
+body {
+	height: 100%;
+	overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+input,
+button,
+textarea {
+	border-radius: 1rem;
+	--border-color: hsl(206 29% 16%);
+}
+
+.container {
+	/* max-width: 900px;	 */
+	margin-inline: auto;
+	padding: 2rem 0;
+	border: none 2px orange;
+}
+
+.container-fluid{	
+	border: none 3px orange;
+}
+
+.serif {
+	/* font-family: 'Libre Baskerville'; */
+	/* font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif' */
+	font-family: "Gill Sans Extrabold", sans-serif;
+}
+
+.capitalize {
+	text-transform: uppercase;
+}
+
+.size {
+	--size: 1rem;
+	font-size: var(--size);
+}
+
+.space {
+	--space: 4rem;
+	margin-top: var(--space);
+}
