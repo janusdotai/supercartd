@@ -1,6 +1,6 @@
 <script>
   import { Link, navigate } from "svelte-routing";
-  import { onMount, afterUpdate } from "svelte";
+  import { onMount } from "svelte";
   import { auth, user, token } from "../store/auth.js";
   import { LOADING, removeBusy } from "../store/loader.js";
   import { getTimestampEpoch, timeAgoFromEpoch, stripHtmlTags, pushNotify } from "../store/utils.js"
@@ -34,8 +34,7 @@
       email_notifications = merchant["email_notifications"];
       phone_number = stripHtmlTags(merchant["phone_number"] ?? "");
       phone_notifications = merchant["phone_notifications"];
-      is_enabled = merchant["is_enabled"];
-      //is_maintenance_mode = merchant["is_maintenance_mode"];
+      is_enabled = merchant["is_enabled"];      
       
       const unixTimestampInSeconds = Math.floor(Date.now() / 1000);
       created_at = merchant["created_at"] == 0 ? unixTimestampInSeconds : merchant["created_at"];

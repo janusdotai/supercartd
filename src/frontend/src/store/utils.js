@@ -26,13 +26,6 @@ export function toDateFromSeconds(seconds_since_epoch){
     return dateObject;
 }
 
-// export function toDateFromNanoSeconds(ns_since_epoch){
-//   const s = BigInteger(ns_since_epoch);
-//   const ms = s * 1000000;
-//   const dateObject = new Date(ms);  
-//   return dateObject  
-// }
-
 export function getTimestampEpoch() {
     const unixTimestampInSeconds = Math.floor(Date.now() / 1000);
     return Number(unixTimestampInSeconds);
@@ -89,9 +82,7 @@ export function timeAgo(date) {
       //console.log("default trap timeAgo " + date + ":" + weeks)
       return 'Just now';
     }
-
 }
-
 
 async function sha224(principal, subaccount) {  
   data = ["\x0Aaccount-id", principal.toUint8Array(), subaccount ? subaccount : new Uint8Array(32)]
@@ -124,7 +115,6 @@ export function getAccountIdFromPrincipal(principal){
   return toHexString(p);
 }
 
-
 export async function generateSHA256(input) {
   const encoder = new TextEncoder();
   const data = encoder.encode(input);
@@ -133,7 +123,6 @@ export async function generateSHA256(input) {
   const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
   return hashHex;
 }
-
 
 export async function generateRandomSHA256(length) {
   // Generate random bytes
@@ -149,7 +138,6 @@ export async function generateRandomSHA256(length) {
   const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
   return hashHex;
 }
-
 
 export function flatten(thing){
   //{"propertname": null}, {"propertyname2", null}  ==> ["propertyname", "propertyname2"]
@@ -180,20 +168,16 @@ export function transformTokenHistory(history){
   //input = [{ value: 25222525.1, created_at: 1642425322 }, { value: 8, created_at: 1642511722 }]
   //const data = [{ value: 1, time: 1642425322 }, { value: 8, time: 1642511722 }    
   var result = [];
-  history.forEach(function(thing){
-    //console.log(thing);
+  history.forEach(function(thing){    
     var dt = thing["created_at"]; //seconds since epoch
     var dts = Number(dt);
     var v = thing["value"] || 0.00;
     var t = {value: v, time: dts};
     result.push(t);
   });
-  //console.log(result);  
-  //tv wants asc by date
   result.sort(function(a, b) {
     return a.time - b.time;
   });
-
   return result;
 }
 
@@ -202,20 +186,16 @@ export function transformOrderHistory(history){
   //input = [{ value: 25222525.1, created_at: 1642425322 }, { value: 8, created_at: 1642511722 }]
   //const data = [{ value: 1, time: 1642425322 }, { value: 8, time: 1642511722 }    
   var result = [];
-  history.forEach(function(thing){
-    //console.log(thing);
+  history.forEach(function(thing){    
     var dt = thing["created_at"]; //seconds since epoch
     var dts = Number(dt);
     var v = thing["grand_total"] || 0.00;
     var t = {value: v, time: dts};
     result.push(t);
-  });
-  //console.log(result);  
-  //tv wants asc by date
+  });  
   result.sort(function(a, b) {
     return a.time - b.time;
   });
-
   return result;
 }
 

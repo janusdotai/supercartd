@@ -8,32 +8,23 @@
     
     let product_catalog = [];
     
-    onMount(async () => {
-      //let principal = await $auth.actor.whoami();
-      //console.log("principal : " + principal.toString());      
+    onMount(async () => {      
       await bind_merchant();
     });
 
-    async function bind_merchant(){
-        //console.log("loading products")
+    async function bind_merchant(){        
         LOADING.setLoading(true, "");      
         let merchant_response = await $auth.actor.getMerchant().then(m => {
-            let data = m["data"][0]            
-            //console.log(m)
-            //console.log(data)
-            let cid = data["cid"]
-            //console.log(cid)
+            let data = m["data"][0]                        
+            let cid = data["cid"]            
             bind_products(cid)        
         });        
     }
 
-    async function bind_products(cid){
-        //console.log("binding product catalog for id " + cid)
-        let stuff = await $auth.actor.getMerchantProducts(cid).then(p => {
-            //console.log(p)
+    async function bind_products(cid){        
+        let stuff = await $auth.actor.getMerchantProducts(cid).then(p => {            
             let data = p["data"] || [];            
-            product_catalog = data[0];
-            //console.log(product_catalog)
+            product_catalog = data[0];            
             LOADING.setLoading(false, "");
         }).catch(e => {
             console.log(e);

@@ -35,12 +35,9 @@ async function bind_merchant(){
     });        
 
     await bind_products();
-
     await get_receipt();
-    
-
     LOADING.setLoading(false, "");
-}    
+}
 
 async function get_receipt(){
     if(!cid || !rid){
@@ -49,29 +46,22 @@ async function get_receipt(){
     }
     const thing = $auth.actor.getReceipt(cid, rid).then(x =>{        
         let r = x[0];                
-        receipt = r;            
-        //console.log(r)
-        receipt_items = receipt["items"]
-        //console.log(receipt_items)
+        receipt = r;                    
+        receipt_items = receipt["items"]        
     })
 }
 
 async function bind_products(){    
-    let stuff = await $auth.actor.getMerchantProducts(cid).then(p => {
-        //console.log(p)
+    let stuff = await $auth.actor.getMerchantProducts(cid).then(p => {        
         let data = p["data"] || [];            
-        var catalog = data[0];
-        // console.log(product_catalog)        
-        // console.log(product_catalog.length)
+        var catalog = data[0];        
         let tmp = []
         catalog.forEach(x => {
             let id = x[0];
-            let product = x[1];
-            //console.log(product)
+            let product = x[1];            
             tmp.push(product);
         })             
-        product_catalog = tmp;
-        
+        product_catalog = tmp;        
     });
 }
 
@@ -80,11 +70,9 @@ function goBack(){
 }
 
 function tryGetImageFromSku(sku){
-    const match = product_catalog.find(x => x.sku == sku)
-    //console.log(match)
+    const match = product_catalog.find(x => x.sku == sku)    
     if(match){
-        let url = match["image_url"][0]
-        //console.log(url)
+        let url = match["image_url"][0]        
         return url;
     }
     return "";
@@ -97,10 +85,8 @@ function unwrapKey2Val(thing){
 
 function getBlockScanUrl(chain, tx, height){
     let sc_chain = unwrapKey2Val(chain)
-    var t = {"sc_chain": sc_chain, "tx_hash" : tx, "block_height": height};
-    //console.log(t);
-    var url = get_blockscan_url(t, false);
-    //console.log(url)        
+    var t = {"sc_chain": sc_chain, "tx_hash" : tx, "block_height": height};    
+    var url = get_blockscan_url(t, false);    
     return url;
 } 
 
@@ -111,14 +97,6 @@ function getImageUrl(image_url){
         return place_holders[randomIndex];        
     }
     return image_url;
-}
-
-function testChainLookup(tx){
-    console.log(tx)
-    const thing = $auth.actor.checkTransactionForConfirmation(tx).then(x =>{
-
-        console.log(x);
-    });
 }
 
 </script>
@@ -143,14 +121,10 @@ function testChainLookup(tx){
 
 
   <p>ID <code>{rid}</code></p>
-  <p>URL <code>{public_receipt_url}</code></p>
-  <!-- <p>Order <code>{receipt?.oid}</code></p> -->
+  <p>URL <code>{public_receipt_url}</code></p>  
   <p>Created <code>{timeAgoFromEpoch(receipt?.created_at)}</code></p> 
-  <p>Chain <code class="pico-color-green-250">{unwrapKey2Val(receipt?.chain)}</code></p>
-  <!-- <p>Tx <code>{receipt?.onchain_tx}</code></p> -->
-  <p>Transaction <code>{@html getBlockScanUrl(receipt?.chain, receipt?.onchain_tx, receipt?.block_height)}</code></p>
-  <!-- svelte-ignore a11y-invalid-attribute -->
-  <!-- <p><a href="#" on:click={testChainLookup( receipt?.onchain_tx)}>Test </a></p> -->
+  <p>Chain <code class="pico-color-green-250">{unwrapKey2Val(receipt?.chain)}</code></p>  
+  <p>Transaction <code>{@html getBlockScanUrl(receipt?.chain, receipt?.onchain_tx, receipt?.block_height)}</code></p>    
   <hr>
 
   <div class="grid">

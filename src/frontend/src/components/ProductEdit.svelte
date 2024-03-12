@@ -1,6 +1,6 @@
 
 <script>
-    import { onMount, afterUpdate } from "svelte";
+    import { onMount } from "svelte";
     import { auth, user, token } from "../store/auth.js";
     import { Link, navigate } from "svelte-routing";
     import { getTimestampEpoch, timeAgoFromEpoch, ellipsis, stripHtmlTags, pushNotify, key2val } from "../store/utils.js"
@@ -33,8 +33,7 @@
     let is_insert = (id == "0" || id == undefined) ? true : false;
 
     
-    onMount(async () => {        
-        //console.log("productId : " + id);      
+    onMount(async () => {                
         bind_merchant().then(x => {
           //console.log("loaded checkout id " + cid);
         });
@@ -43,6 +42,7 @@
     async function bind_merchant(){
         const merchant_response = await $auth.actor.getMerchant().then(m => {            
             let data = m["data"][0] || [];
+            
             if(data.length == 0)           {
               console.log("error loading merchant..")             
               pushNotify("error", "Error", "Merchant could not be loaded, please try again")              
@@ -50,23 +50,17 @@
             //  alert("error loading merchant")
               navigate("/store/products", false)
               return false;
-            }            
-            //console.log(m)
-            //console.log(data)
-            cid = data["cid"]
-            //console.log("checkout id " + cid);            
+            }
+            cid = data["cid"]            
             tryGetProduct(id);
         });
-
     }
- 
+
 
     async function tryGetProduct(id){
-        if(id == undefined || id == null || id == "0"){
-            //console.log("New Product")
+        if(id == undefined || id == null || id == "0"){            
             created_at = getTimestampEpoch();
             updated_at = getTimestampEpoch();
-
             return;
         };
         LOADING.setLoading(true, "Loading product ... ");
@@ -93,15 +87,12 @@
 
             is_enabled =  product["is_enabled"] === true ? true : false;
             updated_at = product["updated_at"]
-            created_at = product["created_at"]
-            //console.log(product["is_enabled"])
+            created_at = product["created_at"]            
             
             if(product["tax_mode"] && product["tax_mode"] != "0"){
               tax_mode =  key2val(product["tax_mode"]);
-            }            
-            //console.log(tax_mode)
+            }
 
-           // console.log("taxtest:" + tax_mode)
             if(tax_mode == "inclusive"){
               document.getElementById("tax_mode").checked = true;
               tax_mode_tooltip = "Price includes taxes";
@@ -119,27 +110,17 @@
 
     async function onSubmit(e) {
       const formData = new FormData(e.target);      
-      //set button to busy ... 
-    //   if(e.submitter && setBusy){
-    //     setBusy(e.submitter);
-    //   }
-      
-      //CONVERT TYPES TO ICP
       const data = {};
-      for (let field of formData) {        
-        //console.log(field)
+      for (let field of formData) {                
         const [key, value] = field;
-        data[key] = value;       
+        data[key] = value;
 
-        if(field[0] == "is_enabled"){ //optional field          
-          var isTrueSet = (data[key] === 'true');
-          //console.log("handled is_enabled isTrueSet " + isTrueSet)
-          data[key] = isTrueSet;
-          //console.log("handled is_enabled opt?")
+        if(field[0] == "is_enabled"){
+          var isTrueSet = (data[key] === 'true');          
+          data[key] = isTrueSet;          
         }
 
-        if(field[0] == "price"){
-          //console.log("price ")
+        if(field[0] == "price"){          
           data[key] = parseFloat(data[key]);
         }
         
@@ -151,25 +132,21 @@
           }        
         }
 
-        if(field[0] == "updated_at"){
-          //console.log("getTimestampEpoch ")
+        if(field[0] == "updated_at"){          
           data[key] = getTimestampEpoch();
         }
 
         if(field[0] == "tax1rate"){          
-          data[key] = parseFloat(data[key]);
-          //console.log("handled tax1rate conversion")
+          data[key] = parseFloat(data[key]);          
         }
 
         if(field[0] == "tax2rate"){          
-          data[key] = parseFloat(data[key]);
-          //console.log("handled tax2rate conversion")
+          data[key] = parseFloat(data[key]);          
         }
 
-        if(field[0] == "image_url"){ //optional field
+        if(field[0] == "image_url"){
           let url = stripHtmlTags(data[key]);
-          data[key] = [url];          
-          //console.log("handled image_url opt?")
+          data[key] = [url];
         }
 
         if(field[0] == "name"){          
@@ -214,9 +191,7 @@
 
       data["description2"] = [""];
       data["tags"] = [[""]];
-      data["foreign_key"] = [""];
-
-     // console.log(data)
+      data["foreign_key"] = [""];     
 
       await updateProduct(data).catch(err => {
         console.log(err);        
@@ -244,45 +219,34 @@
           if (!response.data){
               console.log("bad response status ..exiting");
               return;
-          }        
-
+          }
           LOADING.setLoading(false, "");
           console.log("merchant updated");
-
           navigate("/store/products", true);
-
       }else{ //error updating
-        LOADING.setLoading(false, "");
-        //console.log(response)
+        LOADING.setLoading(false, "");        
         let error_text = "";
         if(response.error_text && response.error_text.length > 0){
           error_text = response.error_text[0]
         }
         alert("There was an error updating the product\n\n" + error_text);
-      }       
+      }
 
     };
+ 
 
-    function display_tax_info(){
-      return "this is how taxes are calculated for this sku";
-    }
-
-    function updateTaxClass(e){
-      //console.log("updateTaxClass")
-      //console.log(e.target.checked)
+    function updateTaxClass(e){      
       if(e.target.checked){
         tax_mode = "inclusive";
         tax_mode_tooltip = "Price includes taxes";
         document.getElementById("tax_mode_details").style.display = "none";
-
       }else{
         tax_mode = "exclusive";
         tax_mode_tooltip = "Price does not include taxes";
         document.getElementById("tax_mode_details").style.display = "block";
-
       }
-
     }
+
 
     function goBack(){
         navigate("/store/products", false);
@@ -300,16 +264,7 @@
 {/if}
 <section>
     <form on:submit|preventDefault={onSubmit}>
-       
-          <!-- <section class="pico-color-red-500" id="checkout_warning">
-            No checkout found, create a new one below:
-          </section>  
-          <section class="pico-color-green-500" id="checkout_success">
-            Checkout was updated successfully.
-          </section>      
-           -->
-          <article class="nopadding">   
-           
+          <article class="nopadding">              
             <fieldset>
                 <input type="hidden" value={id} name="pid" />
                 <input type="hidden" value={updated_at} name="updated_at" />
@@ -349,12 +304,7 @@
                 Description
                 <input type="text" id="description" name="description" bind:value={description} placeholder="" required autocomplete="off" maxlength=50 class="update-field"/>        
             </label>
-
-            <!-- <label for="description2">
-                <p class="update-field">Description 2</p>                
-                <input type="text" id="description2" name="description2" bind:value={description2} placeholder="" required autocomplete="off" maxlength=50 class="update-field"/>        
-            </label> -->
-
+        
             <label for="price">
                 Price
                 <input type="text" id="price" name="price" bind:value={price} placeholder="1.99" required autocomplete="off" maxlength=50 class="update-field"/>
@@ -392,15 +342,10 @@
             </div>
           
           </article>
-          <!-- <fieldset>
-            <code>{id}</code>
-          </fieldset> -->
-
+    
           <fieldset>
-           
             <input type="hidden" value={tax1rate} name="tax1rate"  />
             <input type="hidden" value={tax2rate} name="tax2rate" />
-
           </fieldset>
 
           <fieldset>            

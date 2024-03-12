@@ -70,8 +70,7 @@ async function validate_setup(){
         location.href = "/";
         return false;
     }
-    const ok = await $auth.actor.getCheckoutStatus(cid).then(x => {
-        //console.log("checkout enabled: " + x)
+    const ok = await $auth.actor.getCheckoutStatus(cid).then(x => {        
         CHECKOUT_ENABLED = x;
     }).catch(ex => {
         alert("problem establishing connection to the store")
@@ -80,14 +79,11 @@ async function validate_setup(){
 };
 
 async function load_checkout(){
-    const loaded_sv = await $auth.actor.getCheckoutStoreView(cid).then(x => {
-        //console.log(x);
+    const loaded_sv = await $auth.actor.getCheckoutStoreView(cid).then(x => {        
         if(x.status == 200){
-            let sv = x.data[0];
-            //console.log(sv)
+            let sv = x.data[0];            
             store_view = sv["merchant"];
-            product_catalog = sv["products"][0] || [];
-            //console.log(product_catalog)
+            product_catalog = sv["products"][0] || [];            
             checkout_name = store_view["name"]          
         }else{
             alert("problem establishing connection to the store")
@@ -97,32 +93,25 @@ async function load_checkout(){
 }
 
 async function load_cart(){    
-    if($shoppingCart.length > 0){
-        //console.log("HI THERE");
+    if($shoppingCart.length > 0){        
         document.getElementById("checkout-footer").style.display = 'block';3
         calculateTotal();
     }
 }
 
-async function load_payment_options(sc_chain_name){
-    //console.log('load_payment_options')
+async function load_payment_options(sc_chain_name){    
     if(!cid || !sc_chain_name){
         console.log("Checkout not ready" + sc_chain_name)        
         return false;
     }
-    //console.log("LOADING PAYMENTS FOR " + sc_chain_name)
-    //console.log("FETCHHING load_payment_options for : " + sc_chain_name);
-    const op = await $auth.actor.getCheckoutPaymentOptions(cid, sc_chain_name).then(x => {
-        //console.log(x);
+    const op = await $auth.actor.getCheckoutPaymentOptions(cid, sc_chain_name).then(x => {        
         if(x.status == 200){
             let options = x.data[0];        
             payment_options = options;
             return true;
-        }else{
-            //console.log(x.status_text)  
+        }else{            
             if(x.error_text && x.error_text.length > 0){
-                var msg = x.error_text[0];
-                //alert(msg);
+                var msg = x.error_text[0];              
                 pushNotify("error", "Payments", msg);
                 document.getElementById("po_busy")?.removeAttribute("aria-busy");
                 document.getElementById("po_busy").innerHTML = "No payment options found for chain";                
@@ -135,11 +124,9 @@ async function load_payment_options(sc_chain_name){
     return op;
 }
 
-function addItem(item){
-    //console.log(item)
+function addItem(item){    
     if($shoppingCart.length >= MAX_CART_ITEMS){
-        pushNotify("warning", "Cart warning", "Max cart items reached");
-        //alert("Max items reached")
+        pushNotify("warning", "Cart warning", "Max cart items reached");        
         return;
     }
     shoppingCart.addProduct(item);
@@ -159,30 +146,25 @@ function displayImage(url){
     return stripHtmlTags(url); //todo
 }
 
-function calculateTotal(){
-    //console.log(shoppingCart)    
+function calculateTotal(){    
     var details = shoppingCart.details();
     cart_sub_total = details["sub_total"];
     cart_tax_total = details["tax_total"]
     cart_total = details["total"];
 }
 
-function isValidEvmAddress(addr){
-    //console.log('isValidEvmAddress ' + addr);
+function isValidEvmAddress(addr){    
     if(!addr || addr == "" || addr == undefined) return false;
-    var thing =  Web3.utils.isAddress(addr);    
-    //console.log('isValidEvmAddress ' + thing);
+    var thing =  Web3.utils.isAddress(addr);        
     return thing;
 }
 
-function loadStep2WalletConnectors(){
-    //console.log("ok opening connection dialog")
+function loadStep2WalletConnectors(){    
     document.getElementById("step2").style.display = "block"
     document.getElementById("step1").style.display = "none";
     document.getElementById("step3").style.display = "none";
     document.getElementById("step4").style.display = "none";
     document.getElementById("clear_cart").style.display = "none";
-
     document.querySelectorAll(".add-cart-button").forEach(x => {
         x.style.display = "None";
     })
@@ -193,16 +175,12 @@ async function connectMetaMask(){
     if (window.ethereum && typeof(window.ethereum) !== "undefined") {
         ACTIVE_WALLET_CHAIN_ID = window.ethereum?.chainId;
         
-        var mmClient = new MetaMask(1)        
-        var is_unlocked = await mmClient.isUnlocked();
-        //console.log("Is UNlocked? " + is_unlocked);
-
+        var mmClient = new MetaMask(1)
         await mmClient.onInit();
         ACTIVE_WALLET_PROVIDER_ID = WalletProvider.META_MASK;
 
         const acc = await mmClient.getAccount();
-        if(acc){
-            //console.log(acc)            
+        if(acc){                
             let p = await mmClient.personalSign().then(z => {
                 if(z != true){
                     //alert("user rejected request")
@@ -215,12 +193,10 @@ async function connectMetaMask(){
                     return;
                 }                
                 ACTIVE_WALLET = mmClient.active_wallet;
-                loadStep3PaymentOptions();
-                //console.log("Verified mm with active wallet:  " + ACTIVE_WALLET)
+                loadStep3PaymentOptions();                
             });            
         }
-    }else{
-        //alert("no Meta mask found");
+    }else{        
         pushNotify("error", "MetaMask", "No MetaMask (browser) found");
         return false;    
     }
@@ -235,12 +211,10 @@ async function connectPlug(){
         plugClient.onInit();
 
         var ok = await plugClient.login();        
-        if(!ok || ok != true){
-            //alert("user rejected request")    
+        if(!ok || ok != true){            
             pushNotify("warning", "Plug Wallet", "User rejected the request");
             return false;
-        }
-        //console.log("OK RESULT " + ok);
+        }        
         ACTIVE_WALLET_PROVIDER_ID = WalletProvider.PLUG_WALLET;
         ACTIVE_WALLET_CHAIN_ID = plugClient.chainId();
         ACTIVE_WALLET = plugClient.active_wallet;
@@ -254,7 +228,6 @@ async function connectPlug(){
 
     }else{
         console.log("no plug wallet found")
-        //alert("no plug wallet found");
         pushNotify("error", "Plug Wallet", "No Plug Wallet (browser) found");
         return false;      
     }
@@ -267,8 +240,7 @@ async function connectPhantom(){
     
     const ok = await phantomClient.login().then(x => {
         ACTIVE_WALLET_PROVIDER_ID = WalletProvider.PHANTOM_WALLET;
-        if(!x || x != true){
-            //alert("user rejected request")
+        if(!x || x != true){            
             pushNotify("warning", "Phantom Wallet", "User rejected the request");
             return false;
         }
@@ -314,12 +286,7 @@ async function connectWalletConnect(){
     })  
 }
 
-
-
-
-
-function loadStep3PaymentOptions(){
-    //console.log("fetching payment details for chain " + ACTIVE_WALLET_CHAIN_ID)
+function loadStep3PaymentOptions(){    
     if(!ACTIVE_WALLET_CHAIN_ID){
         alert("Problem loading the correct chain")        
         return false;
@@ -334,21 +301,15 @@ function loadStep3PaymentOptions(){
     }
     //fetch options
     const stuff = load_payment_options(translated_chain_name);
-    if(stuff == false){
-        //alert("problem loading the options for this chain..")
+    if(stuff == false){        
         pushNotify("error", "Checkout", "No payment options found for this chain");
         return false;
-    }  
-
+    }
     return true;   
 }
 
 function getPaymentQuote(event, dest){    
-    const selectedValue = event.target.value;
-    //console.log('Selected value:', selectedValue);
-    //console.log('Selected chain:', ACTIVE_WALLET_CHAIN_ID);
-    //console.log('Selected provider:', ACTIVE_WALLET_PROVIDER_ID);    
-    //console.log('Selected provider:', ACTIVE_WALLET);
+    const selectedValue = event.target.value;  
     if(!selectedValue || !ACTIVE_WALLET_CHAIN_ID || !ACTIVE_WALLET_PROVIDER_ID || !ACTIVE_WALLET){
         alert("sorry this cart is not setup correctly. please reload the page")
         return false;
@@ -362,13 +323,11 @@ function getPaymentQuote(event, dest){
         alert("this cart cannot be priced")
         return false;
     }
-
-    //console.log(selectedValue)    
-    let sc_token = selectedValue; //slug or currency?
+    
+    let sc_token = selectedValue;
     ACTIVE_TOKEN = sc_token;
     //let token = "eth";
     //let chain = "eth_mainnet"
-
     let cart_items = [];
     $shoppingCart.forEach(x => {        
         var item = {
@@ -390,8 +349,7 @@ function getPaymentQuote(event, dest){
         "active_chain": sc_chain,
         "shipping_total": 0.00,
         "items" : cart_items
-    }
-    //console.log(cart)
+    }    
     
     quote_loading_detail_text = "fetching latest quote ... ";
     document.getElementById("payment_quote").setAttribute("aria-busy", "true");    
@@ -429,9 +387,8 @@ function getPaymentQuote(event, dest){
         pushNotify("error", "Cart Engine", "There was a problem fetching a quote try another method");
         toggle_quote_buttons(false);
         document.getElementById("payment_quote").setAttribute("aria-busy", "false");
-        document.getElementById("payment_quote_detail_cancel").setAttribute("aria-busy", "false");
-        //document.getElementById("payment_quote_detail_cancel").style.display = "block";        
-        return false;        
+        document.getElementById("payment_quote_detail_cancel").setAttribute("aria-busy", "false");        
+        return false;
     });
     
 }
@@ -460,8 +417,7 @@ async function proposeTransaction(){
     //console.log("quote_token_denomination " + quote_token_denomination);
     var token_contract = quote_token_contract;
    
-    if(from.toLowerCase() == to.toLowerCase()){
-        //alert("You cannot send tokens to yourself")
+    if(from.toLowerCase() == to.toLowerCase()){        
         pushNotify("error", "Transaction", "You cannot send tokens to yourself")
         document.querySelector(".connection_status").innerHTML = "You cannot send tokens to yourself";
         return;
@@ -475,14 +431,12 @@ async function proposeTransaction(){
     }).catch(ex => {
         console.log(ex);
         document.querySelector(".connection_status").innerHTML = ex?.message;        
-        pushNotify("error", "Transaction Error", ex?.message)
-        //pushNotify("error", "Not Implemented", "Coming soon")
+        pushNotify("error", "Transaction Error", ex?.message)        
         LOADING.setLoading(false, "");
         throw ex;
     });
     console.log("final proposeTransaction result: " + JSON.stringify(tx));
-    if(!tx || !tx.transactionHash){
-        //alert("There was a problem creating the transaction")
+    if(!tx || !tx.transactionHash){        
         pushNotify("error", "Transaction", "There was a problem creating the transaction")
         LOADING.setLoading(false, "");
         return;
@@ -531,18 +485,14 @@ async function finalizeTransaction(tx){
         // console.log("ORDER CREATED")
         // console.log(x);
         return x;
-    }).catch(ex =>{
-        //alert("There was a problem creating this order!")
+    }).catch(ex =>{        
         console.log(ex);
         pushNotify("error", "Order", "Error creating this order")
         LOADING.setLoading(false, "");
         throw new Error("Problem creating supercart order");
     });
-
-    //console.log("this is the receipt: " + receipt);
-    //LOADING.setLoading(false, "");
-    if(receipt.status != 200){
-        //alert("problem loading the receipt...")
+    
+    if(receipt.status != 200){        
         pushNotify("error", "Order", "Error loading the receipt ... ")
         LOADING.setLoading(false, "");
         return;
@@ -574,11 +524,8 @@ function reset(){
     document.getElementById("step2").style.display = 'none';
     document.getElementById("step3").style.display = 'none'
     document.getElementById("step4").style.display = 'none';
-
     document.getElementById("clear_cart").style.display = "block";
-
     document.getElementById("payment_quote_detail").style.display = 'none';
-
     document.getElementById('connection_status').innerHTML = "";
     document.getElementById('chain_status').innerHTML = "";
     quote_loading_detail_text = "";
@@ -587,8 +534,7 @@ function reset(){
     });   
     document.querySelectorAll(".add-cart-button").forEach(x => {
         x.style.display = "block";
-    })
-    
+    })    
 }
 
 </script>
@@ -627,10 +573,8 @@ function reset(){
                     {@const sku = entry["sku"]}
                     {@const price = entry["price"]}
                     {@const updated_at = entry["updated_at"]}
-                    {@const is_enabled = entry["is_enabled"]}        
-                    
-                    {@const description = entry["description"]}
-                    {@const description2 = entry["description2"]}
+                    {@const is_enabled = entry["is_enabled"]}
+                    {@const description = entry["description"]}                   
 
                     {@const image_url = entry["image_url"][0]}
                     {@const sku_title = sku + " " + name}

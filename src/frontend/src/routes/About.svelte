@@ -42,9 +42,7 @@ function loadIcpLogo(){
   <p>This platfrom was built with <a href="https://svelte.dev/">Svelte</a> and <a href="https://internetcomputer.org/docs/current/motoko/main/motoko">Motoko</a>.
   </p>  
   <section>
-    <p>Github Links: <code>coming soon - pending audit</code>
-    </p>
-    <p>Social Links: <code>coming soon</code></p>
+    <p>Github: <code>https://github.com/janusdotai/supercartd</code> </p>    
   </section>
   <article class="detail-center" >
     <img src={loadIcpLogo()} alt="icp logo" class="icp-logo"/>

@@ -1,9 +1,9 @@
 
 <script>
-    import { onMount, afterUpdate } from "svelte";
+    import { onMount } from "svelte";
     import { auth, user, token } from "../store/auth.js";
     import { Link } from "svelte-routing";
-    import { LOADING, removeBusy } from "../store/loader.js";
+    import { LOADING } from "../store/loader.js";
     import { timeAgoFromSecondEpoch, transformTokenHistory} from "../store/utils.js";
     import LineChart from './charts/LineChart.svelte';
 
@@ -16,10 +16,7 @@
     let chart_data_final = [];
 
     let most_recent_quote;
-    let icon_url;
-
-    let most_recent_value;
-    let last_updated;
+    let icon_url;    
 
     let description = "";
     let symbol = "";
@@ -71,15 +68,11 @@
 
 </script>
 
-
-
-<section>
-    
+<section>    
     <h1><img src="{icon_url}" alt="icon here"  class="fx-icon"/> <b>{selected_currency}</b>  {description}</h1>    
     <p>Price: <b><code class="pico-color-green-250" >{formatValue(most_recent_quote?.value)}</code></b></p>    
     <p>Symbol: <b><code class="pico-color-green-500" >{symbol}</code></b></p>
     <p>Updated: <b><code class="pico-color-green-500" >{timeAgoFromSecondEpoch(most_recent_quote?.time)}</code></b></p>     
-
 </section>
 <figure>
     <LineChart bind:this={chart} bind:data_loaded={chart_data_loaded}  />
@@ -90,12 +83,10 @@
         <table>
           <thead>
             <tr>
-
               <th scope="col">Symbol</th>
               <th scope="col">Value</th>              
               <th scope="col">Source</th>                     
-              <th scope="col">Date</th>
-             
+              <th scope="col">Date</th>             
             </tr>
           </thead>
           <tbody>

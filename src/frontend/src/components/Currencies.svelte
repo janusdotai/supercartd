@@ -14,11 +14,7 @@
   
   async function bind_currencies(){
       console.log("im binding currencies")
-      await $auth.actor.getCurrencies().then(x => {
-          // console.log(x[0]);  
-          // x[0].forEach(y => {
-          //     console.log(y);
-          // });
+      await $auth.actor.getCurrencies().then(x => {          
           currencies = x[0];
           currencies.sort(function(a, b){
             return a.name.localeCompare(b.name);
@@ -28,11 +24,6 @@
  
 
   async function refreshCurrency(event, name, name_row_id, price_row_id, source_row_id, updated_row_id){
-    // console.log(event);
-    // console.log(name);
-    // console.log(name_row_id);
-    // console.log(price_row_id);
-
     let price_element = document.getElementById(price_row_id);
     if(!price_element){
       console.log("Error loading price_element cell");
@@ -51,9 +42,7 @@
 
     event.target.setAttribute("aria-busy", "true");
 
-
-    await $auth.actor.getQuote(name).then(x => {      
-      //console.log(x);
+    await $auth.actor.getQuote(name).then(x => {            
       if(x.length != 1){
         console.log("problem with the price service");
         return;
@@ -65,12 +54,9 @@
       var source = quote["source"];
       var symbol = quote["symbol"];
       var value = quote["value"];
-      var value_str = quote["value_str"];
+      var value_str = quote["value_str"];      
 
-      //console.log(ca);
-
-      var thing = toDateFromSeconds(ca);
-      //console.log(thing);
+      var thing = toDateFromSeconds(ca);      
       var friendlyTimeAgo = timeAgoFromSecondEpoch(thing);
 
       price_element.innerHTML = value_str;

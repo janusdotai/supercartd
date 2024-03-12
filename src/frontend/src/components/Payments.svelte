@@ -34,16 +34,11 @@ onMount(async () =>{
 
 async function load_tokens(){    
     token_result_busy = true;  
-    const ignore = await $auth.actor.getTokensWithQuotes().then(x => {
-        //console.log(x);        
-        let unsorted = x;
-        // unsorted.sort(function(a, b) {
-        //   return a.name > b.name;
-        // });
+    const ignore = await $auth.actor.getTokensWithQuotes().then(x => {        
+        let unsorted = x;        
         unsorted.sort(function(a, b){
           return a.name.localeCompare(b.name);
-        });
-        //console.log(unsorted)
+        });        
         tokens = unsorted;
         token_result_busy = false;
     });
@@ -51,10 +46,8 @@ async function load_tokens(){
 
 
 async function load_payment_settings() {
-    const payments2 = await $auth.actor.getPaymentSettings().then(z => {
-      //console.log(z[0]);
-      payment_settings = z[0];
-      //console.log("payments2 HAS RUN");
+    const payments2 = await $auth.actor.getPaymentSettings().then(z => {      
+      payment_settings = z[0];      
     });
 }
 
@@ -70,26 +63,18 @@ function goBack(){
 }  
 
 
-function is_setting_enabled(token_type, chain){
-  //console.log(chain)
-  //console.log(payment_settings[0])
-  var tt = key2val(token_type);
-  //console.log(tt);
-  var match = payment_settings.find(y => key2val(y.token_type) == tt &&  key2val(y.chain) == chain);
-  //console.log(match);
+function is_setting_enabled(token_type, chain){  
+  var tt = key2val(token_type);  
+  var match = payment_settings.find(y => key2val(y.token_type) == tt &&  key2val(y.chain) == chain);  
   if(!match) return false;
 
   var enabled = match["is_enabled"] == true ? true : false;
-  return enabled;
-  // if(match) return true;
-  // return false;
+  return enabled;  
 }
 
 function last_setting_update_time(token_type){
-  var tt = key2val(token_type);
-  //console.log(tt);
-  var match = payment_settings.find(y => key2val(y.token_type) == tt);
-  //console.log(match);
+  var tt = key2val(token_type);  
+  var match = payment_settings.find(y => key2val(y.token_type) == tt);  
   if(match){
     var ua = match["updated_at"];
     return ua;
@@ -98,12 +83,9 @@ function last_setting_update_time(token_type){
   }
 }
 
-
-function tokenIsTestnet(chains){
-  //console.log(chains);
+function tokenIsTestnet(chains){  
   var thing = chains.indexOf("testnet");
-  const a = chains.every(chain => chain.includes("testnet"));
-  //console.log(a)
+  const a = chains.every(chain => chain.includes("testnet"));  
   return a;
 }
 
@@ -155,8 +137,7 @@ function tokenIsTestnet(chains){
               {@const test = tokenIsTestnet(flat_chains)}
               {@const setting_is_enabled = is_setting_enabled(token_type, first_chain)}
 
-              {@const setting_last_updated = last_setting_update_time(token_type)}
-              
+              {@const setting_last_updated = last_setting_update_time(token_type)}              
                   <tr>
                     <td>
                       {#if (test)}

@@ -1,9 +1,9 @@
 <script>
-import { onMount, afterUpdate } from "svelte";
+import { onMount } from "svelte";
 import { auth, user, token } from "../store/auth.js";
 import { Link } from "svelte-routing";
 import { LOADING, removeBusy } from "../store/loader.js";
-import { timeAgoFromSecondEpoch, timeAgoFromEpoch, toDateFromSeconds, timeAgo, flatten, first, pushNotify } from "../store/utils.js"
+import { timeAgoFromSecondEpoch, toDateFromSeconds, flatten, first, pushNotify } from "../store/utils.js"
 
 $: tokens = [];
 $: token_result_busy = false;
@@ -14,11 +14,9 @@ onMount(async () => {
     LOADING.setLoading(false, "")
 });
 
-async function bind_tokens(){
-    //console.log("im binding tokens")
+async function bind_tokens(){    
     token_result_busy = true;
-    const ignore = await $auth.actor.getTokensWithQuotes().then(x => {
-        //console.log(x);
+    const ignore = await $auth.actor.getTokensWithQuotes().then(x => {        
         var unsorted = x;
         unsorted.sort(function(a, b){
           return a.name.localeCompare(b.name);
@@ -31,11 +29,7 @@ async function bind_tokens(){
     });
 };
 
-async function refreshTokenQuote(event, name, name_row_id, price_row_id, source_row_id, updated_row_id){
-    // console.log(event);
-    // console.log(name);
-    // console.log(name_row_id);
-    // console.log(price_row_id);
+async function refreshTokenQuote(event, name, name_row_id, price_row_id, source_row_id, updated_row_id){    
     console.log("refreshing " + name);
     LOADING.setLoading(true, "LOADING ....");
     const things = document.querySelectorAll(".refresh-link").forEach(x => {      

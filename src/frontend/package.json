@@ -21,6 +21,7 @@
     "@dfinity/auth-client": "^1.0.1",
     "@dfinity/candid": "^1.0.1",
     "@dfinity/identity": "^1.0.1",
+    "@dfinity/ledger-icp": "^2.2.1",
     "@dfinity/principal": "^1.0.1",
     "@dfinity/utils": "^2.1.2",
     "@picocss/pico": "^1.5.12",

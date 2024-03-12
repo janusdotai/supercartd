@@ -4,8 +4,7 @@
 
   import Home from "./routes/Home.svelte";
   import About from "./routes/About.svelte";
-  import Admin from "./routes/Admin.svelte";  
-  import Api from "./components/Api.svelte";
+  import Admin from "./routes/Admin.svelte";
 
   import Auth from "./components/Auth.svelte";
   import EditStore from "./components/EditStore.svelte";
@@ -36,6 +35,7 @@
 
   //var user_theme = localStorage.getItem("picoPreferredColorScheme");
   //console.log("user has theme " + user_theme);
+  
   function navHandler(){
     let q = document.querySelector(".nav-dropdown");
     q.removeAttribute("open");
@@ -124,9 +124,8 @@
         <ReceiptDetail rid="{params.rid}" />
       </Route>
 
-
       <Route path="/about" component={About} />
-      <Route path="/connect" component={Api} />
+      
       <Route path="/"><Home /></Route>
       <Route>
         <h1>404 - Not Found</h1>
@@ -151,7 +150,6 @@
   <LoadingModal />
 
 </Router>
-
 
 <style>
 

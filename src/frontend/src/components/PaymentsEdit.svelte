@@ -1,8 +1,8 @@
 <script>
-    import { onMount, afterUpdate } from "svelte";
+    import { onMount } from "svelte";
     import { auth, user, token } from "../store/auth.js";
     import { Link, navigate } from "svelte-routing";
-    import { getTimestampEpoch, timeAgoFromEpoch, generateRandomSHA256, ellipsis, first, flatten, stripHtmlTags, pushNotify } from "../store/utils.js"
+    import { timeAgoFromEpoch,  first, stripHtmlTags, pushNotify } from "../store/utils.js"
     import { LOADING, removeBusy } from "../store/loader.js";
 
     export let slug = ""; //token slug    
@@ -35,9 +35,7 @@
 
     ];
 
-    onMount(async () => {        
-       // console.log("slug : " + slug); 
-        //console.log("PAYMEND EDIT loaded checkout  id : " + cid);
+    onMount(async () => {
         if(!slug || slug.length < 3){
             alert("There was an error loading this payment")
             navigate("/store/payments");
@@ -90,23 +88,17 @@
             navigate("/admin");
             return;
         }
-        const ps = $auth.actor.getPaymentSetting(slug).then(x => {
-            //console.log(" loading payment setting: " + slug)
-            //console.log(x)            
-            is_insert = x.length == 0 ? true : false;
-            //console.log("Is insert? " + is_insert);
+        const ps = $auth.actor.getPaymentSetting(slug).then(x => {           
+            is_insert = x.length == 0 ? true : false;            
 
-            if(!is_insert){
-               // console.log("Updating Record")
-                var setting = x[0];
-                //console.log(setting)
+            if(!is_insert){               
+                var setting = x[0];                
                 is_enabled = setting["is_enabled"];
                 created_at = setting["created_at"];
                 updated_at = setting["updated_at"];
                 dest = setting["dest"];
                 dest = stripHtmlTags(dest);
                 guid = setting["guid"];
-
             }else{
                 console.log("no existing records found for : " + slug)
                 console.log("Inserting Record")
@@ -175,13 +167,9 @@
         console.log("finished updating");
     }
 
-    async function updatePaymentSetting(setting){
-        console.log("updating settting..... ")
-        //console.log(setting)
-        const updated_setting = await $auth.actor.updatePaymentSetting(slug, token_chain, dest, is_enabled);
-        console.log("UPDATE RESULT: " + updated_setting);
-        if(updated_setting){
-            //alert("Saved payment setting");
+    async function updatePaymentSetting(){        
+        const updated_setting = await $auth.actor.updatePaymentSetting(slug, token_chain, dest, is_enabled);       
+        if(updated_setting){            
             pushNotify("success", "Saved", "Payment setting saved");
         }else{
             alert("Error - There was an error updating this setting\nPlease check the logs");
@@ -220,20 +208,14 @@
     <img src={token_image_url} alt="" class="token-icon" />&nbsp;&nbsp;<b>{token_name} - {token_description}</b>
 </article>
 <section>
-    <form on:submit|preventDefault={onSubmit}>       
-        
-          <article class="nopadding">   
-           
-            <fieldset>
-               
+    <form on:submit|preventDefault={onSubmit}>
+          <article class="nopadding">
+            <fieldset>               
                 <input type="hidden" value={slug} name="slug" />
                 <input type="hidden" value={guid} name="guid" />
-
                 <input type="hidden" value={updated_at} name="updated_at" />
                 <input type="hidden" value={created_at} name="created_at" />                
                 <input type="hidden" value={token_chain} name="chain" />
-                
-              
                 <label for="is_enabled">
                 <input type="radio" id="is_enabled" name="is_enabled" value={true} bind:group={is_enabled} >
                 {#if (is_enabled) }
@@ -267,10 +249,8 @@
                 </p>
                 <span class="pico-color-orange-250">WARNING - Please ensure the address is correct for <b><em data-tooltip="{token_chain_tooltip}">{token_chain}</em></b></span>                
               </fieldset>
-            <fieldset>
-          
-          </article>
-       
+            <fieldset>          
+          </article>       
           <fieldset>            
             {#if (is_insert)}
               <span></span>
@@ -278,17 +258,11 @@
             <p>updated: {@html timeAgoFromEpoch(updated_at) == "Just now" ? "<span style='color: lawngreen;'>Just now</span>" : timeAgoFromEpoch(updated_at)}</p>
             <p>created: {timeAgoFromEpoch(created_at) == "Invalid date" ? "" : timeAgoFromEpoch(created_at)}</p>
             {/if}
-            
-          
-          </fieldset>          
-
-        
+          </fieldset>
         <button type="submit" on:click{onSubmit}>Save</button>
         <br>        
-        <button id="cancel_edit" class="secondary" on:click|preventDefault={goBack}>Back</button>
-        
+        <button id="cancel_edit" class="secondary" on:click|preventDefault={goBack}>Back</button>        
       </form>  
-
 </section>
 
 <style>
@@ -297,4 +271,4 @@
         height: 32px;
         vertical-align:auto;
     }
-  </style>
+</style>

@@ -13,19 +13,11 @@ $: current_token = $token;
 let ms = $user.updated_at * 1000;
 let dt = new Date(ms);
 
-
 afterUpdate(async () => {
 	if(is_loggedIn){
-		pushNotify("success", "Welcome", "You are logged in");
-		//await loadMerchantInfo();
+		pushNotify("success", "Welcome", "You are logged in");		
 	}
 });
-
-async function loadMerchantInfo(){
-	const merchant = await $auth.actor.getMerchant().then(x => {
-		console.log(x);
-	});
-}
   
 </script>
 
@@ -58,22 +50,10 @@ async function loadMerchantInfo(){
 				
 			  </details>
 		</article>
-
-		<!-- <article>
-			BETA TEST
-			<p>
-				Thank you helping me test this platform. This is a very early version that we plan to 
-				continue to evolve.  Enter you public wallet address for which you wish to receive a 
-				free thank you nft:
-			</p>
-			<fieldset>
-				<input type="text" value="coming soon" />
-			</fieldset>
-		</article> -->
-
+		
 		<section class="action-area">
 			<Link to="/admin"  role="button" >Store Config</Link>
-		  </section>	
+		</section>	
 
 	{:else}
 
@@ -91,7 +71,8 @@ async function loadMerchantInfo(){
 					</footer>
 				</article>
 			</div>
-		</div>  		
+		</div>
+		  		
 	{/if}
 
  

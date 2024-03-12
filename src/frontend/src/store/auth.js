@@ -1,5 +1,4 @@
 import { writable } from "svelte/store";
-//import { idlFactory } from "../../deps/backend/backend.did.js";
 import { idlFactory } from "../../../declarations/backend/service.did.js";
 import { Actor, HttpAgent } from "@dfinity/agent";
 
@@ -25,11 +24,9 @@ export function createActor(options) {
     options.agentOptions = hostOptions;
   } else {
     options.agentOptions.host = hostOptions.host;
-  }
+  }  
   
-  //console.log("using agent options: " + JSON.stringify(options))
   const agent = new HttpAgent({ ...options.agentOptions });
-
   // Fetch root key for certificate validation during development
   if (process.env.DFX_NETWORK !== "ic") {
     //console.log("I'm fetching a new local root key")
@@ -50,7 +47,6 @@ export function createActor(options) {
 };
 
 export const IS_PRODUCTION = process.env.DFX_NETWORK === "ic" ? true : false;
-//console.log("IS_PRODUCTION?: " + IS_PRODUCTION)
 
 //global internet computer interface
 export const auth = writable({

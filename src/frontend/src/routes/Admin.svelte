@@ -30,14 +30,11 @@
 
     $: CHECKOUT_READY = (checkout_enabled && active_product_length > 0 && active_payment_settings.length > 0 )    
    
-    onMount(async () => {        
-        //pushNotify('success', 'This is the title', 'the update was successful');
-        //console.log("ADMIN COMPONENT MOUNTED ");
+    onMount(async () => {
         if($auth.loggedIn){            
             LOADING.setLoading(true, "loading admin ....")            
             try{
-                let principal = await $auth.actor.whoami().then(x => {
-                    //console.log(x)
+                let principal = await $auth.actor.whoami().then(x => {                    
                     current_principal_raw = x;
                     console.log("admin route principal : " + x.toString());
                     current_principal = x.toString();
@@ -49,29 +46,24 @@
                 //pushNotify("error", "Error", "Session timeout")
                 location.href = "/";
             }
-
         }else{
             console.log("FAIL - auth.loggedIn is FALSE")
             alert('there was an error and your session has timed out');
             location.href = "/";
-        }        
-        //console.log("---------- DATA LOADING FINISHED -------------- ")       
+        }                
         LOADING.setLoading(false, "");
-    });    
+    });
 
 
     let getMerchantPromise = getMerchant();
     async function getMerchant(){
-        let merchant_response = await $auth.actor.getMerchant();
-        //console.log(merchant_response);
+        let merchant_response = await $auth.actor.getMerchant();        
         if(merchant_response.status != 200){
-            let err = merchant_response?.error_text[0];
-            //pushNotify("warning", "No merchant found", "Please create a new merchant" )
+            //let err = merchant_response?.error_text[0];            
             return;
         };
         
-        let merchant = merchant_response["data"][0];
-        //console.log(merchant);
+        let merchant = merchant_response["data"][0];        
         cid = merchant["cid"];        
         checkout_enabled = merchant["is_enabled"];
         await load_active_products();
@@ -81,23 +73,17 @@
     }
 
 
-    async function load_active_products(){
-        //console.log("load_active_products for cid " + cid)
-        let stuff = await $auth.actor.getMerchantProducts(cid).then(p => {
-            //console.log(p)
+    async function load_active_products(){        
+        let stuff = await $auth.actor.getMerchantProducts(cid).then(p => {            
             let data = p["data"] || [];
             const catalog = data[0].map(subarray => subarray[1]);
             const enabled_products = catalog.filter(x => x["is_enabled"] == true);
             active_product_length = enabled_products.length;
-            inactive_product_length = catalog.length - active_product_length;
-            //console.log(f);            
-            product_catalog = enabled_products;
-            //console.log(product_catalog)            
+            inactive_product_length = catalog.length - active_product_length;            
+            product_catalog = enabled_products;            
         }).catch(ex =>{
-
             pushNotify("error", "Error", "Failed to load products");
-            console.log(ex);
-            
+            console.log(ex);            
         });
     }
 
@@ -127,8 +113,7 @@
     }
 
     function navigate_to_public(){
-        var url = generate_checkout_url();
-        //console.log(url)
+        var url = generate_checkout_url();        
         window.open(url, "_blank");
         return;
     }   
@@ -182,22 +167,18 @@
         
         {#await getMerchantPromise}
             <p>...loading checkout</p>
-        {:then checkout}
-            {#if (checkout != null)}
-                
-                <p class="pico-color-black-500">Name: <code>{@html checkout.name}</code></p>
-                
+        {:then checkout}        
+            {#if (checkout != null)}                
+                <p class="pico-color-black-500">Name: <code>{@html checkout.name}</code></p>                
                 {#if (checkout.is_enabled === true)}
                     <p>Status: <b><code class="pico-color-green-250" >ENABLED</code></b></p>
                 {:else}
                     <p>Status: <b><code class="pico-color-red-500">DISABLED</code></b></p>
                 {/if}
-                <p>Created: <code>{timeAgoFromEpoch(checkout.created_at)}</code></p>
-                
+                <p>Created: <code>{timeAgoFromEpoch(checkout.created_at)}</code></p>                
             {:else}
                 <p class="pico-color-orange-500">No checkout found - edit to get started</p>                
-            {/if}
-            
+            {/if}            
         {:catch error}            
             <p style="color: red">{error.message}</p>
         {/await}
@@ -236,24 +217,21 @@
         </article> 
     {/if}
     {#if (cid && CHECKOUT_READY)}
-    <article>       
-       
-       <h1><button on:click={startSellingShow}>Start Selling</button></h1>
-
-       <section id="start_selling" class="start-selling">
-        <article>            
-            <p>Your public checkout: <code class="public-url-code">{generate_checkout_url()}</code></p>
-            <p>QR for public checkout: <code>qr</code></p>            
-            <p>Script Tags for external integrations: </p>
-            <textarea></textarea>        
-            <div class="view-checkout">
-                <h4><b><a href={generate_checkout_url()} target="_blank" class="button">View Checkout</a></b></h4>                
-            </div>                        
-                
-        </article>
-       </section>
-
-    </article> 
+        <article>
+        <h1><button on:click={startSellingShow}>Start Selling</button></h1>
+            <section id="start_selling" class="start-selling">
+                <article>            
+                    <p>Your public checkout: <code class="public-url-code">{generate_checkout_url()}</code></p>
+                    <p>QR for public checkout: <code>qr</code></p>            
+                    <p>Script Tags for external integrations: </p>
+                    <textarea></textarea>        
+                    <div class="view-checkout">
+                        <h4><b><a href={generate_checkout_url()} target="_blank" class="button">View Checkout</a></b></h4>                
+                    </div>                        
+                        
+                </article>
+            </section>
+        </article> 
     {/if}
     <section>
         <div style="text-align: right;">

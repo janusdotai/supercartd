@@ -1,12 +1,8 @@
 <script>
     import { onMount } from 'svelte';
-    import { createChart } from 'lightweight-charts';
-    import { generateCandlestickData } from "../../store/sampledata"; 
+    import { createChart } from 'lightweight-charts';    
     
-    export let data_loaded = false;   
-    //export let chart_data = [];
-
-    let chart;    
+    export let data_loaded = false;
 
     export function update_chart(latest_data){
 

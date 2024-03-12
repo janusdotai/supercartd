@@ -15,8 +15,7 @@ const unsubscribe = LOADING.subscribe((value) => {
 });
 onDestroy(unsubscribe);
 
-onMount(async () => {      
-    //await bind_merchant();
+onMount(async () => {
     LOADING.setLoading(true, "");
     if(!rid){
         alert("Invalid receipt")
@@ -33,8 +32,7 @@ async function get_receipt(){
     }
     const thing = $auth.actor.getReceiptByReceiptId(rid).then(x =>{        
         let r = x[0];                
-        receipt = r;            
-        //console.log(r)        
+        receipt = r;
         cid = receipt["cid"];            
     }).catch(ex => {
         alert("sorry problem loading your receipt")        
@@ -49,12 +47,10 @@ function unwrapKey2Val(thing){
 
 function getBlockScanUrl(chain, tx, height){
     let sc_chain = unwrapKey2Val(chain)
-    var t = {"sc_chain": sc_chain, "tx_hash" : tx, "block_height": height};
-    //console.log(t);
-    var url = get_blockscan_url(t, false);
-    //console.log(url)        
+    var t = {"sc_chain": sc_chain, "tx_hash" : tx, "block_height": height};    
+    var url = get_blockscan_url(t, false);    
     return url;
-} 
+}
 
 function returnToCheckout(){    
     var url = "/checkout/" + cid;
@@ -90,21 +86,8 @@ function returnToCheckout(){
             <p>Tax <code>${receipt?.tax_total.toFixed(2)}</code></p>
             <p>Fees <code>${receipt?.additional_fee.toFixed(2)}</code></p>
             <p><b>Grand Total <code class="pico-color-green-250">${receipt?.total.toFixed(2)}</code></b></p>
-        </div>
-    
-        <!-- <div>
-            <h4>Shipping Details</h4>
-            <p>Name <code>{receipt?.first_name}</code></p>
-            <p>Email <code>{receipt?.email}</code></p>
-            <p>Address 1 <code>{receipt?.shipping_address1}</code></p>
-            <p>Address 2 <code>{receipt?.shipping_address2}</code></p>
-            <p>City <code>{receipt?.shipping_city}</code></p>
-            <p>State <code>{receipt?.shipping_state}</code></p>
-            <p>Postal Code <code>{receipt?.shipping_zip}</code></p>
-            <p>Country <code>{receipt?.shipping_country}</code></p>
-        </div> -->
-        
-        
+        </div>   
+     
     
     </div> 
 
@@ -116,10 +99,7 @@ function returnToCheckout(){
         <div><button class="secondary" on:click={returnToCheckout}>Return to Checkout</button></div>
     </div>
 
-
     </article>
-
-
 
 {/if}
     

@@ -1,9 +1,7 @@
 
 import { handleGlobalConnectionEvent, WalletProvider } from './index.js';
-import { getAccountIdFromPrincipal, key2val, generateSHA256, pushNotify, ellipsis } from "../store/utils.js"
-import { convertStringToE8s, uint8ArrayToHexString } from "@dfinity/utils";
-import { LOADING, removeBusy } from "../store/loader.js";
-
+import { getAccountIdFromPrincipal, key2val,  pushNotify, ellipsis } from "../store/utils.js"
+import { LOADING } from "../store/loader.js";
 import ic from 'ic0';
 
 const LEDGER_ID = "ockk2-xaaaa-aaaai-aaaua-cai"
@@ -24,35 +22,22 @@ class PlugWallet{
         return this.chain_id;
     }
 
-    onInit(){
-        console.log("plug init called")        
+    onInit(){        
         document.getElementById("connection_status").innerHTML = "Plug Wallet - Request permission init"       
     }
 
     async disconnect(){
-        console.log("plug was disconnected")
-    }   
+        console.log("plug was disconnected")        
+    }
 
     async isConnected(){
         return await window.ic.plug.isConnected();
     }
 
     async login(){
-        try{           
-            
-            const p = await window.ic.plug.requestConnect()
-            //console.log(p)
-            
-            // access session principalId
-            //console.log(window.ic.plug.principalId)
-
-            // access session accountId
-            //console.log(window.ic.plug.accountId)
-
-            // access session agent
-            // console.log(window.ic.plug.agent)
-            var agent = window.ic.plug.agent;      
-            
+        try{
+            const p = await window.ic.plug.requestConnect()            
+            var agent = window.ic.plug.agent;
             var plug_principal_id = window.ic.plug.principalId ?? "unknown"
            
             this.active_wallet = plug_principal_id;
@@ -64,15 +49,10 @@ class PlugWallet{
             // const onConnectionUpdate = () => {
             //     console.log(window.ic.plug.sessionManager.sessionData)
             // }
-
             this.handleAuthenticated(agent, plug_principal_id)
             pushNotify("success", "Plug Wallet", "Connected");
-
             return true;
-
-        }catch({name, message}){           
-            //console.log(name)
-            //console.log(message)
+        }catch({name, message}){                       
             if(message == "The agent creation was rejected."){
                 document.getElementById("connection_status").innerHTML = "Plug - User rejected request"                
             }else{
@@ -82,19 +62,10 @@ class PlugWallet{
     }
 
     async handleAuthenticated(authClient, principalId){
-        console.log("plug wallet handleAuthenticated ")
-        //console.log("authClient")
-        //console.log(authClient)
-        let p = ellipsis(principalId, 12);        
+        //console.log("plug wallet handleAuthenticated ")
+        let p = ellipsis(principalId, 12);
         document.getElementById("connection_status").innerHTML = p;
-        //handleGlobalConnectionEvent(principalId, authClient, WalletProvider.PLUG_WALLET);        
-    }
-
-    async getBalance(){
-        const result = await window.ic.plug.requestBalance();
-        console.log(result);
-        return result;      
-    }
+    }   
 
     async proposeTransaction(provider, from, to, token_denomination, token_contract){
         if(provider !== WalletProvider.PLUG_WALLET){
@@ -107,8 +78,7 @@ class PlugWallet{
         // console.log("to" + to)   
         // console.log("token denomination " + token_denomination)
         // console.log("token_contract " + token_contract)
-
-       // token_denomination = "180043500"; 1.7 icp for 22.344 cart
+        // token_denomination = "180043500"; 1.7 icp for 22.344 cart
         //var token_amount = convertStringToE8s(token_denomination);
         //console.log(token_amount)
 
@@ -151,11 +121,10 @@ class PlugWallet{
             var block = transfer?.height || 0;
             console.log(block);
             if(block > 0){
-                LOADING.setLoading(true, "Confirming block ... please wait ");
-                //document.getElementById("connection_status").innerHTML = "VALIDATING - Please wait...";
-                pushNotify("info", "Plug Wallet", "Confirming block " + block );
-
-                //const validated_client_side = await this.validateTransaction(block);
+                LOADING.setLoading(true, "Confirming block ... please wait ");                
+                pushNotify("info", "Plug Wallet", "Confirming block " + block );                
+                
+                //TODO: move this to server side
                 const tx_validation_result = await this.validateTransaction(block);
                 if(tx_validation_result.result === false){
                     document.getElementById("connection_status").innerHTML = "Error - Plug wallet failed to send";
@@ -179,9 +148,7 @@ class PlugWallet{
                 document.getElementById("connection_status").innerHTML = "Error - Plug wallet failed to send";
             }           
 
-        }catch({name, message}){
-            console.log(name)
-            console.log(message)        
+        }catch({name, message}){          
             document.getElementById("connection_status").innerHTML = message;
             document.querySelector(".connection_status").innerHTML = message;
             document.querySelectorAll(".connection_status").forEach(x => {
@@ -194,29 +161,14 @@ class PlugWallet{
 
     //validates a block on the client side
     async validateTransaction(block){
-
         console.log("validating block " + block)        
-        const ledger = ic(LEDGER_ID); // Ledger canister        
+        const ledger = ic(LEDGER_ID); // Ledger canister
         try{
-
             const thing = await ledger.call('block', block);
-            console.log(thing);
-
             var transaction = thing?.Ok?.Ok?.transaction;
-            console.log(transaction);
-
             if(!transaction){
                 return { "result": false, "tx": "" };
             };
-            
-            //var parent_hash_thing = thing?.Ok?.Ok?.parent_hash[0];
-            //let parent_hash = parent_hash_thing["inner"] || [] //Object { inner: Uint8Array(32) }
-            //console.log(parent_hash)
-            //if(parent_hash.length == 0){
-            //    return { "result": false, "tx": "" };
-            //};
-            //let tx_hash = uint8ArrayToHexString(parent_hash);            
-
             let tx_hash = block; //tod cbor + sha
             var transfer = transaction?.transfer;
             var send = transfer?.Send;
@@ -226,41 +178,13 @@ class PlugWallet{
             var e8s = key2val(amount);
             console.log(`parsed block for amount ${e8s} send from ${from} to ${to}`)
             console.log(`tx ${tx_hash}`)
-
             return { "result": true, "tx": tx_hash, "block": block };
-
         }catch(e){
             console.log(e)
             pushNotify("error", "Plug Wallet", "Error validating transaction")            
         }
         return { "result": false, "tx": "" };
     }
-    
-    //todo how to get transaction hash from block
-    // async test_block(block){
-      
-    //     const serializer = SelfDescribeCborSerializer.withDefaultEncoders(true);        
-
-    //     const ledger = ic(LEDGER_ID); // Ledger canister      
-    //     const thing = await ledger.call('block', block);
-    //     console.log(thing);  
-
-    //     var transaction = thing?.Ok?.Ok?.transaction;
-    //     console.log(transaction);        
-    //     //let x = new JsonDefaultCborEncoder();
-        
-    //     let encoded = serializer.serialize(transaction)
-    //     let encoded2 = serializer.serializeValue(transaction)
-    //     //var initial = { Hello: "World" };
-    //     //var encoded = CBOR.encode(transaction);
-    //     let sha = await generateSHA256(encoded);        
-    //     console.log(sha)        
-
-    //     let sha2 = await generateSHA256(encoded2);        
-    //     console.log(sha2)        
-        
-    //     return;
-    // }
 
 }
 

@@ -25,7 +25,7 @@
     let icon_url = "na.png";
 
     onMount(async () => {          
-        //console.log(id);
+        
         chart_data_loaded = false;
         
         await loadTokenDetails(selected_slug);
@@ -34,8 +34,7 @@
     async function loadTokenDetails(selected_slug){
         console.log("loading details for " + selected_slug);
 
-        const all_tokens = await $auth.actor.getTokens().then(x => {            
-           // console.log(x);
+        const all_tokens = await $auth.actor.getTokens().then(x => {                       
             x = x || [];
             const first = x.find(item => item.slug == selected_slug);    
             if(first == undefined){
@@ -43,21 +42,17 @@
                 alert("sorry this token does not exist");
                 return false;
             }
-           // console.log(first);
             selected_token  = first["name"];
             selected_token_desc = first["description"];
             decimals = first["decimals"];
             contract = first["contract"] || "Native";
             icon_url = "/images/tokens/" + selected_token + ".png";
-
             icon_url = icon_url.toLowerCase();
-            //console.log(icon_url)
 
             var d = first["chains"] || [];
             chains = flatten(d);
 
             loadTokenHistory();
-
         });      
 
     };
@@ -65,57 +60,41 @@
     async function loadTokenHistory(){
         LOADING.setLoading(true, "LOADING ....");
         await $auth.actor.getTokenQuoteHistory(selected_token, 20).then(x => {        
-            var history = x[0];
-          
-            token_history = history;
-            
+            var history = x[0];          
+            token_history = history;            
             chart_data_final = transformTokenHistory(token_history);   
-            chart.update_chart(chart_data_final);            
-          
+            chart.update_chart(chart_data_final);
             //since the chart transform sorted it, we pull the last to get the latest
-            let recent_quote = chart_data_final[chart_data_final.length - 1];
-            //console.log(recent_quote);
+            let recent_quote = chart_data_final[chart_data_final.length - 1];            
             most_recent_quote = recent_quote;
 
             chart_data_loaded = true;
-            LOADING.setLoading(false, "")   
-            
+            LOADING.setLoading(false, "");
         });
-    };
+    };    
 
     async function refreshPrice(evnt){
-            console.log("refreshing ... ");        
-            // console.log(evnt);
+                        
             evnt.target.setAttribute('aria-busy', 'true');      
 
             await $auth.actor.getTokenQuote(selected_token).then(x => {
-                var json = x || []
-                //console.log('new json ')
-                //console.log(json)
-
-                var freshQuote = json[0];                
-                //console.log(new_price)
-
+                var json = x || []            
+                var freshQuote = json[0];
                 let name = freshQuote["name"];
                 let symbol = freshQuote["symbol"];
                 let value = freshQuote["value"];
                 let value_str = freshQuote["value_str"];
                 let created_at = freshQuote["created_at"];
 
-                let n = Number(created_at);
-                //console.log(n)
+                let n = Number(created_at);                
                 freshQuote["time"] = n;
                 most_recent_quote = freshQuote;
-
                 pushNotify("success", "Price Update", value_str);
 
             }).then(y => {
-
                 updateHistory();
                 console.log(' refreshing ... ALL DONE');         
-                evnt.target.setAttribute('aria-busy', 'false');
-
-            
+                evnt.target.setAttribute('aria-busy', 'false');            
             }).catch(ex => {
                 console.log(ex)
                 throw ex;
@@ -123,15 +102,11 @@
     };
 
     async function updateHistory(){
-
-        const h = await $auth.actor.getTokenQuoteHistory(selected_token, 20).then(z => {
-            //console.log(z)
+        const h = await $auth.actor.getTokenQuoteHistory(selected_token, 20).then(z => {            
             var history = z[0];
             token_history = history;
         });
-
-    };
-    
+    };    
 
     function formatLocalDateTime(dt){
         var t = new Number(dt);
@@ -145,8 +120,6 @@
 
 </script>
 
-
-
 <section>    
     <div>
         <div style="float: right; margin-top: 50px; margin-right: 50px;">
@@ -154,9 +127,6 @@
             <a href="#" on:click={event => refreshPrice(event)}>Refresh</a>
         </div>
     </div>
-
-    
-
     <h1><img src="{icon_url}" alt="icon here"  class="token-icon"/> <b>{selected_token}</b> {selected_token_desc}
     </h1>
     <p>Price: <b><code class="pico-color-green-250" >{formatValue(most_recent_quote?.value)}</code></b></p>
@@ -164,7 +134,6 @@
     <p>Decimals: <b><code class="pico-color-green-500" >{decimals}</code></b></p>
     <p>Contract: <b><code class="pico-color-green-500" >{contract}</code></b></p>
     <p>Chains: <b><code class="pico-color-green-500" >{chains}</code></b></p>    
-
 </section>
 
 <figure>
@@ -185,7 +154,6 @@
           <tbody>
             {#if token_history.length > 0}
               {#each token_history as entry, i}
-      
                   {@const created_at = entry["created_at"]}
                   {@const name = entry["name"]}
                   {@const source = entry["source"]}
