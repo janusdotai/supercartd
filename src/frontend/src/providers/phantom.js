@@ -6,8 +6,7 @@ import { pushNotify } from "../store/utils.js";
 const VITE_ALCHEMY_SOL_KEY = import.meta.env.VITE_ALCHEMY_SOL_KEY;
 class PhantomWallet {   
 
-    constructor(x){
-        //console.log("phantom constructor was called w " + x)
+    constructor(x){        
         this.active_wallet = "";        
         this.status_msg = null;
         this.status = 0;     
@@ -30,13 +29,11 @@ class PhantomWallet {
         return null;
     }
 
-    async login(){
-        //console.log("phantom login")        
+    async login(){        
         const provider = this.getProvider();
         try{
             const resp = await provider.connect();
-            const pubkey = resp.publicKey.toString();
-            //console.log(pubkey)
+            const pubkey = resp.publicKey.toString();            
             this.active_wallet = pubkey;
             document.getElementById("connection_status").innerHTML = this.active_wallet; 
             const s = await this.personalSign().then(x => {
@@ -59,56 +56,38 @@ class PhantomWallet {
 
     async personalSign(){
         try{
-            const provider = this.getProvider();
-           // const message = `To avoid digital dognappers, sign below to authenticate with CryptoCorgis`;
+            const provider = this.getProvider();           
             var msg = "Sign this message to continue checkout:\n";
             msg += "Welcome from supercart!\n\n";            
-            msg += new Date().toString();              
+            msg += new Date().toString();
 
             const encodedMessage = new TextEncoder().encode(msg);
             const signedMessage = await provider.signMessage(encodedMessage, "utf8");
             //console.log(signedMessage);
-            //todo: recover?
+            //TODO: recover?
 
             return true;
 
         }catch(err){
-            throw err;
-            return false;
-        }        
+            throw err;            
+        }
     }
 
    
     //https://github.com/extrnode/rpc-solana-endpoints
     //https://stackoverflow.com/questions/68166964/how-can-you-transfer-sol-using-the-web3-js-sdk-for-solana
-    async transferSOL(from, to, token_denomination) {
-        // console.log("transferSOL")
-        // console.log("from " + from)
-        // console.log("to " + to) 
-        // console.log("token_denomination " + token_denomination)     
+    async transferSOL(from, to, token_denomination) {       
 
         // Detecing and storing the phantom wallet of the user (creator in this case)
         var provider = await this.getProvider();
-        
-        //public rps dont work 
-        //let sol_rpc = "https://api.mainnet-beta.solana.com"
-        //let sol_rpc = "https://3.235.99.159:8545"
         let sol_rpc = "https://solana-mainnet.g.alchemy.com/v2/" + this.alchemy_key;
-
-        // Establishing connection  
-        // var connection = new solanaWeb3.Connection(
-        //     solanaWeb3.clusterApiUrl('mainnet-beta'), //does not work
-        // );    
-
+        // Establishing connection
         var connection = new solanaWeb3.Connection(
             sol_rpc
         );
         
         var senderWallet = new solanaWeb3.PublicKey(from);
         var recieverWallet = new solanaWeb3.PublicKey(to);
-        // console.log("senderWallet: ", senderWallet);
-        // console.log("recieverWallet: ", recieverWallet);        
-    
         var transaction = new solanaWeb3.Transaction().add(
             solanaWeb3.SystemProgram.transfer({
                 //fromPubkey: provider.publicKey,
@@ -116,14 +95,9 @@ class PhantomWallet {
                 toPubkey: recieverWallet,
                 lamports: token_denomination
                 //lamports: solanaWeb3.LAMPORTS_PER_SOL //Investing 1 SOL. Remember 1 Lamport = 10^-9 SOL.
-            }),
-            // new solanaWeb3.TransactionInstruction({
-            //     keys: [{ pubkey: provider.publicKey, isSigner: true, isWritable: true }],
-            //     data: Buffer.from("Hi from supercartd", "utf-8"),
-            //     programId: new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"),
-            // }),
+            })            
         );
-    
+
         // Setting the variables for the transaction
         transaction.feePayer = await provider.publicKey;
         let blockhashObj = await connection.getLatestBlockhash();
@@ -151,13 +125,7 @@ class PhantomWallet {
         if(!this.alchemy_key){
             alert("Alchemy key not found")
             return false;
-        }
-        // console.log("plug proposeTransaction")
-        // console.log("provider " + provider)
-        // console.log("from " + from)
-        // console.log("to" + to)   
-        // console.log("token denomination " + token_denomination)
-        // console.log("token_contract " + token_contract)        
+        }             
         
         try{           
             const provider = this.getProvider();
@@ -200,9 +168,7 @@ class PhantomWallet {
         if(provider){
             provider.disconnect();
         }
-
     }
-
 
 }
 

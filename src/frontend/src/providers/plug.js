@@ -9,8 +9,7 @@ const NATIVE_ICP = "ryjl3-tyaaa-aaaaa-aaaba-cai";
 
 class PlugWallet{   
 
-    constructor(x){
-        console.log("plug constructor was called with arg: " + x);
+    constructor(x){        
         this.active_wallet = "";        
         this.web3 = null;
         this.status_msg = null;
@@ -45,10 +44,6 @@ class PlugWallet{
 
             document.getElementById("chain_status").innerHTML = this.chainId();
 
-             // Callback to print sessionData
-            // const onConnectionUpdate = () => {
-            //     console.log(window.ic.plug.sessionManager.sessionData)
-            // }
             this.handleAuthenticated(agent, plug_principal_id)
             pushNotify("success", "Plug Wallet", "Connected");
             return true;
@@ -61,8 +56,7 @@ class PlugWallet{
         }
     }
 
-    async handleAuthenticated(authClient, principalId){
-        //console.log("plug wallet handleAuthenticated ")
+    async handleAuthenticated(authClient, principalId){        
         let p = ellipsis(principalId, 12);
         document.getElementById("connection_status").innerHTML = p;
     }   
@@ -72,16 +66,7 @@ class PlugWallet{
             alert("Wrong provider")
             return false;
         }
-        // console.log("plug proposeTransaction")
-        // console.log("provider " + provider)
-        // console.log("from " + from)
-        // console.log("to" + to)   
-        // console.log("token denomination " + token_denomination)
-        // console.log("token_contract " + token_contract)
-        // token_denomination = "180043500"; 1.7 icp for 22.344 cart
-        //var token_amount = convertStringToE8s(token_denomination);
-        //console.log(token_amount)
-
+        
         const cartAmount = Number(token_denomination);
         const receiver = to;
         const requestTransferArg = {
@@ -159,25 +144,25 @@ class PlugWallet{
         return 0;
     }
 
-    //validates a block on the client side
+    //fetches a block on the client side
     async validateTransaction(block){
         console.log("validating block " + block)        
-        const ledger = ic(LEDGER_ID); // Ledger canister
+        const ledger = ic(LEDGER_ID);
         try{
             const thing = await ledger.call('block', block);
             var transaction = thing?.Ok?.Ok?.transaction;
             if(!transaction){
                 return { "result": false, "tx": "" };
             };
-            let tx_hash = block; //tod cbor + sha
+            let tx_hash = block;
             var transfer = transaction?.transfer;
             var send = transfer?.Send;
             var amount = send.amount;
             var from = send.from;
             var to = send.to;
             var e8s = key2val(amount);
-            console.log(`parsed block for amount ${e8s} send from ${from} to ${to}`)
-            console.log(`tx ${tx_hash}`)
+            //console.log(`parsed block for amount ${e8s} send from ${from} to ${to}`)
+            //console.log(`tx ${tx_hash}`)
             return { "result": true, "tx": tx_hash, "block": block };
         }catch(e){
             console.log(e)

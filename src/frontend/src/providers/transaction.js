@@ -17,16 +17,13 @@ class TransactionProvider {
         console.log("TransactionProvider init called")
     }
     
-    // const WalletProvider = {
+    
     //   WALLET_CONNECT: 1,
     //   META_MASK: 2,
     //   INTERNET_IDENTITY: 3,
     //   PLUG_WALLET: 4,
     //   PHANTOM_WALLET: 5
-    // }
 
-    //old sc way
-    //const trans = app.create_transaction(addr, dwallet, token_denomination, token_contract, currency_chain_id);  
     async proposeTransaction(provider, from, to, token_denomination, token_contract){
         switch(provider){
             case 1:

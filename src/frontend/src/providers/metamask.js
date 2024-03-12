@@ -2,7 +2,6 @@ import { handleGlobalConnectionEvent, WalletProvider } from './index.js';
 import { LOADING, removeBusy } from "../store/loader.js";
 import { pushNotify } from '../store/utils.js';
 
-
 class MetaMask {
     
     constructor(x){
@@ -26,28 +25,22 @@ class MetaMask {
                 this.status = -1;
                 document.getElementById("connection_status").innerHTML = "User locked / Disconnected";
                 return;
-             }
-             //console.log(accounts[0])
+             }             
              document.getElementById("connection_status").innerHTML = accounts[0];
              this.status = 1;
              this.active_wallet = accounts[0];
         });
 
-        ethereum.on('chainChanged', (chainId) => {
-            // Handle the new chain.
-            // Correctly handling chain changes can be complicated.
-            // We recommend reloading the page unless you have good reason not to.
-            //console.log("user changed chains..! " + chainId)
+        ethereum.on('chainChanged', (chainId) => {            
+            // We recommend reloading the page unless you have good reason not to.            
             document.getElementById("connection_status").innerHTML = "Meta Mask - user changed chains"
             document.getElementById("chain_status").innerHTML = chainId;         
             alert("BETA - sorry we have to reload for now when you switch chains")
             window.location.reload()
             return false;
-
         });
 
-        document.getElementById("connection_status").innerHTML = "Meta Mask - Request permission"      
-       
+        document.getElementById("connection_status").innerHTML = "Meta Mask - Request permission"       
     }
 
     disconnect(){
@@ -101,10 +94,7 @@ class MetaMask {
             this.active_wallet = "";
             return "";
         });
-
         return accounts;
-        
-      
     }
 
     async personalSign(){        
@@ -124,8 +114,7 @@ class MetaMask {
                     msg,                    
                     from,
                   ],
-            });
-           // console.log("signed result: " + sign)
+            });           
             const recover_result = await web3.eth.personal.ecRecover(msg, sign).then(recover => {
                 console.log("recover")
                 console.log(recover);
@@ -139,7 +128,6 @@ class MetaMask {
                     return true;            
                 }
             });
-
             return recover_result;
          
         } catch ({name, message}) {
@@ -148,26 +136,18 @@ class MetaMask {
             console.log(message)            
             document.getElementById("connection_status").innerHTML = `Error: ${message}`;
             return false;
-        } 
-
+        }
     }   
 
     async proposeTransaction(provider, from, to, token_denomination, token_contract){
         if(provider !== WalletProvider.META_MASK){
             alert("Wrong provider")
             return false;
-        }
-        // console.log("plug proposeTransaction")
-        // console.log("provider " + provider)
-        // console.log("from " + from)
-        // console.log("to " + to)   
-        // console.log("token denomination " + token_denomination)
-        // console.log("token_contract " + token_contract)
+        }     
         if(from != this.active_wallet){
             pushNotify("error", "Meta Mask", "Error - User not connected");
             return false;
         }
-
         let fromAddr =  web3.utils.toChecksumAddress(this.active_wallet);                
         let toAmount = token_denomination;
         let toAddr = web3.utils.toChecksumAddress(to);
@@ -203,16 +183,13 @@ class MetaMask {
                 LOADING.setLoading(true, "processing ... ");                
                 if (error) {                                        
                     document.getElementById("connection_status").innerHTML = `Error: ${error.message}`;
-                    if(error.code == 4001){                                                                   
-                        //alert("User rejected the transaction, exiting");         
+                    if(error.code == 4001){
                         console.log(error)           
                         return;
-                    }else{                        
-                        console.log(error);                    
-                        //alert(error.message);
+                    }else{
+                        console.log(error);                        
                         return;
-                    }
-                  
+                    }                  
                 } else {
                     console.log("mm sendTransaction mempool...")
                     //console.log("here is the tx: " + hash)

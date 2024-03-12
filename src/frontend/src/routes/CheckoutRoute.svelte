@@ -107,7 +107,7 @@ async function load_payment_options(sc_chain_name){
     const op = await $auth.actor.getCheckoutPaymentOptions(cid, sc_chain_name).then(x => {        
         if(x.status == 200){
             let options = x.data[0];        
-            payment_options = options;
+            payment_options = options;            
             return true;
         }else{            
             if(x.error_text && x.error_text.length > 0){
@@ -174,11 +174,9 @@ function loadStep2WalletConnectors(){
 async function connectMetaMask(){
     if (window.ethereum && typeof(window.ethereum) !== "undefined") {
         ACTIVE_WALLET_CHAIN_ID = window.ethereum?.chainId;
-        
         var mmClient = new MetaMask(1)
         await mmClient.onInit();
         ACTIVE_WALLET_PROVIDER_ID = WalletProvider.META_MASK;
-
         const acc = await mmClient.getAccount();
         if(acc){                
             let p = await mmClient.personalSign().then(z => {
@@ -209,7 +207,6 @@ async function connectPlug(){
         ACTIVE_WALLET_CHAIN_ID = "Internet Computer";
         const plugClient = new PlugWallet(1)        
         plugClient.onInit();
-
         var ok = await plugClient.login();        
         if(!ok || ok != true){            
             pushNotify("warning", "Plug Wallet", "User rejected the request");
@@ -217,15 +214,13 @@ async function connectPlug(){
         }        
         ACTIVE_WALLET_PROVIDER_ID = WalletProvider.PLUG_WALLET;
         ACTIVE_WALLET_CHAIN_ID = plugClient.chainId();
-        ACTIVE_WALLET = plugClient.active_wallet;
-   
+        ACTIVE_WALLET = plugClient.active_wallet;   
         var can_load = loadStep3PaymentOptions();
         if(!can_load){
             alert("not ready for loading")
             return false;
         }
         return true;
-
     }else{
         console.log("no plug wallet found")
         pushNotify("error", "Plug Wallet", "No Plug Wallet (browser) found");
@@ -236,8 +231,7 @@ async function connectPlug(){
 async function connectPhantom(){
     ACTIVE_WALLET_CHAIN_ID = "sol_mainnet";
     const phantomClient = new PhantomWallet(1)        
-    phantomClient.onInit();   
-    
+    phantomClient.onInit();
     const ok = await phantomClient.login().then(x => {
         ACTIVE_WALLET_PROVIDER_ID = WalletProvider.PHANTOM_WALLET;
         if(!x || x != true){            
@@ -258,14 +252,10 @@ async function connectPhantom(){
 }
 
 async function connectWalletConnect(){
-    throw new Error("not implemented");
-    
+    throw new Error("not implemented");    
     ACTIVE_WALLET_CHAIN_ID = "";
-
-    const wcClient = new WalletConnect(1)        
-    
-    await wcClient.onInit();
-    
+    const wcClient = new WalletConnect(1)            
+    await wcClient.onInit();    
     const ok = await wcClient.login().then(x => {
         ACTIVE_WALLET_PROVIDER_ID = WalletProvider.WALLET_CONNECT;
         if(!x || x != true){
@@ -360,12 +350,10 @@ function getPaymentQuote(event, dest){
         quote_loading_detail_text = "";
         document.getElementById("payment_quote").setAttribute("aria-busy", "false");
         document.getElementById("payment_quote_detail_cancel").setAttribute("aria-busy", "false");
-
         if(x.status != 200 || !x["data"] || x["data"].length == 0){            
             alert("There was a problem fetching a quote...");
             return;
-        }        
-
+        }
         var data = x["data"][0][0];
         //console.log(data);
         quote_token = data["token"]["name"];
@@ -376,12 +364,13 @@ function getPaymentQuote(event, dest){
         quote_token_contract = data["token"]["contract"];
         quote_token_decimals = data["token"]["decimals"];        
         quote_dest = dest;
-
+        if(Number(quote_token_denomination) == 0){
+            throw new Error("problem in quote engine");
+        }        
+        quote_token_denomination_converted = Number(quote_token_denomination) / (10 ** Number(quote_token_decimals));
         pushNotify("info", "Cart Engine", "Cart expires in 5 minutes");
-
         document.getElementById("payment_quote_detail").style.display = "block";
         document.querySelector(".connection_status").innerHTML = "";
-        
     }).catch(ex =>{
         alert("There was a problem fetching a quote...");
         pushNotify("error", "Cart Engine", "There was a problem fetching a quote try another method");
@@ -390,7 +379,6 @@ function getPaymentQuote(event, dest){
         document.getElementById("payment_quote_detail_cancel").setAttribute("aria-busy", "false");        
         return false;
     });
-    
 }
 
 // const WalletProvider = {
@@ -415,14 +403,12 @@ async function proposeTransaction(){
     var to = quote_dest;
     var amt = quote_token_denomination;
     //console.log("quote_token_denomination " + quote_token_denomination);
-    var token_contract = quote_token_contract;
-   
+    var token_contract = quote_token_contract;   
     if(from.toLowerCase() == to.toLowerCase()){        
         pushNotify("error", "Transaction", "You cannot send tokens to yourself")
         document.querySelector(".connection_status").innerHTML = "You cannot send tokens to yourself";
         return;
-    }    
-    
+    }
     LOADING.setLoading(true, "Awaiting client transaction ... ");
     const tx = await manager.proposeTransaction(ACTIVE_WALLET_PROVIDER_ID, from, to, amt, token_contract).then(x => {
         //console.log("transaction sent.. tx: ")
@@ -445,8 +431,7 @@ async function proposeTransaction(){
     await finalizeTransaction(tx);
 }
 
-async function finalizeTransaction(tx){
-    //console.log("finalizeTransaction: " + tx);
+async function finalizeTransaction(tx){    
     let chain = ChainIdToTokenChain(ACTIVE_WALLET_CHAIN_ID)
     let token = ACTIVE_TOKEN;
     let tx_hash = tx.transactionHash.toString();
@@ -455,8 +440,8 @@ async function finalizeTransaction(tx){
     let amt = quote_cart_total;
     let gas = tx.cumulativeGasUsed?.toString() || "";
     let block_height = tx.blockNumber.toString() || "";
-
     let cart_items = [];
+
     $shoppingCart.forEach(x => {        
         var item = {
             "sku": x["sku"],
@@ -497,6 +482,7 @@ async function finalizeTransaction(tx){
         LOADING.setLoading(false, "");
         return;
     }
+
     var r = receipt.data[0];
     var receipt_id = r["rid"];
     //redirect to receipt page 
@@ -513,13 +499,11 @@ function toggle_quote_buttons(is_disabled){
 }
 
 
-function reset(){
-    //console.log("im resetting")
+function reset(){    
     ACTIVE_WALLET_PROVIDER_ID = null;
     ACTIVE_WALLET_CHAIN_ID = null;
     ACTIVE_WALLET = null;
     payment_options = [];
-
     document.getElementById("step1").style.display = 'block';
     document.getElementById("step2").style.display = 'none';
     document.getElementById("step3").style.display = 'none'
@@ -684,40 +668,29 @@ function reset(){
                             <h2>Cart Quote:</h2>
                             <p>Token: <code class="pico-color-green-500">{quote_token}</code></p>
                             <p>Spot Price: <code class="pico-color-green-500">{quote_spot_price}</code></p>
-
                             <p>Contract: <code class="pico-color-green-500">{quote_token_contract == "" ? "Native" : quote_token_contract}</code></p>
                             <p>Decimals: <code class="pico-color-green-500">{quote_token_decimals}</code></p>
-                            
-                            <p>Token Total: <code class="pico-color-green-250"><b>{quote_token_denomination}</b></code> (wei)</p>
                             <p style="font-size: larger;">Cart Total: <code class="pico-color-green-250"><b>{quote_cart_total}</b></code></p>
-
-                            <!-- <p>Conversion: <code>{quote_conversion}</code></p> -->
-                            <p>Date: <code>{timeAgoFromSecondEpoch(quote_date)}</code></p>
-                            
-                            <p><code class="connection_status"></code></p>
-                            <br>
+                            <p style="font-size: larger;">Token Total: <code class="pico-color-green-250"><b>{quote_token_denomination_converted}</b></code><sup><i>{quote_token}</i></sup></p>
+                            <!-- <p>Quoted: <code>{timeAgoFromSecondEpoch(quote_date)}</code></p> -->
+                            <p><code class="connection_status"></code></p>                            
                             <div class="payment_quote_detail_control">
                                 <button class="" on:click={proposeTransaction}>CONFIRM PAYMENT</button>
-                            </div>
-                            
+                            </div>                            
                           </article>
                         </div>
                     </div>
                     <hr>
-
                     <div class="detail-right">                            
                         &nbsp;<button id="payment_quote_detail_cancel" class="secondary payment-cancel" on:click={reset}>Cancel</button>
                     </div>
-
-                </div>           
-               
-            </footer>
-            
+                </div>
+            </footer>            
           </article>
     {/if}
 </main>
 <footer class="footer-bottom">
-   Supercart 2024
+   Supercartd 2024
    <br>
    Technical Demo
 </footer>
@@ -773,17 +746,17 @@ function reset(){
       vertical-align:auto;
     }
 
-  .payment_quote_detail{
-    padding: 5 5 5 5;
-    border: none 2px lawngreen;
-    display: none;
-  }
-  .payment_quote_detail_control{
-    text-align: center;
-    font-weight: bold;
-  }
-  .footer-bottom{
-    text-align: center;
-  }
+    .payment_quote_detail{
+        padding: 5 5 5 5;
+        border: none 2px lawngreen;
+        display: none;
+    }
+    .payment_quote_detail_control{
+        text-align: center;
+        font-weight: bold;
+    }
+    .footer-bottom{
+        text-align: center;
+    }
 
 </style>
