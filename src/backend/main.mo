@@ -994,8 +994,7 @@ shared ({caller = owner}) actor class Main() = this {
     
 
    
-    /* -------------------LOGGING / CACHING----------------------- */    
-
+    /* -------------------LOGGING / CACHING----------------------- */
     public query (context) func getMerchantLogs(cid : Text) : async [SupdTypes.CheckoutLog] {
         if(Principal.isAnonymous(context.caller)){
             return [];

@@ -48,23 +48,21 @@ module PriceFactory {
     let ic : HttpTypes.IC = actor ("aaaaa-aa");
 
     //pulls USD prices from various open services using a simple average
-    public func getConsensusPrice() : async Float {   
-      
+    public func getConsensusPrice() : async Float {
       //let services : [Types.PriceService] = [#coingecko, #chainlink, #kraken, #testnet];
       let services : [Types.PriceService] = [#testnet]; //TODO: for now using custom service with caching
-
-      //Debug.print("getConsensusPrice STARTED" # debug_show(selected_token));      
+      
       var priceCandidates = List.nil<Float>();
       for (service in services.vals()) {  //TODO: try catch
         switch service {          
           case (#coingecko) { 
             let geckoPrice = await getPriceCoingecko();
-            Debug.print("getConsensusPrice - geckoPrice: " # debug_show(geckoPrice));
+            //Debug.print("getConsensusPrice - geckoPrice: " # debug_show(geckoPrice));
             priceCandidates := List.push(geckoPrice, priceCandidates);
           };
           case (#chainlink) { 
             let chainlinkPrice = await getPriceChainlink();
-            Debug.print("getConsensusPrice - chainlinkPrice: " # debug_show(chainlinkPrice));
+            //Debug.print("getConsensusPrice - chainlinkPrice: " # debug_show(chainlinkPrice));
             priceCandidates := List.push(chainlinkPrice, priceCandidates);
            };
           case(#kraken){
@@ -72,7 +70,7 @@ module PriceFactory {
           };
           case(#testnet){
             let testnetPrice = await getPriceTestnet();
-            Debug.print("getConsensusPrice - testnetPrice: " # debug_show(testnetPrice));
+            //Debug.print("getConsensusPrice - testnetPrice: " # debug_show(testnetPrice));
             priceCandidates := List.push(testnetPrice, priceCandidates);
           };
           case (_) { 
@@ -82,11 +80,9 @@ module PriceFactory {
             let nprice : Float = -1;
             priceCandidates := List.push(nprice, priceCandidates);
            };
+        };        
+      };
 
-        };
-        Debug.print("getConsensusPrice service : " # debug_show(service));
-      };      
-     
       //for SLA check against length of prices == active services     
       var prices = List.filter<Float>(priceCandidates, func n {
         return n > 0;
@@ -97,8 +93,7 @@ module PriceFactory {
         return 0.0;
       };
 
-      var candidates = List.toArray(prices);
-      Debug.print("getConsensusPrice candidates " # debug_show(candidates));
+      var candidates = List.toArray(prices);      
       var avg = Utils.averageFloats(candidates, true);
       Debug.print("getConsensusPrice avg: "  # debug_show(avg));
       Debug.print("getConsensusPrice FINISHED" # debug_show(selected_token));      
@@ -135,14 +130,11 @@ module PriceFactory {
               return ?q;
           };
       };
-
     };
-
     
     
     /*----------------PRICE SERVICES --------------------------------*/   
     private func getPriceCoingecko() : async Float {
-
       let mappings = [
         (#icp, "internet-computer"), 
         (#eth, "ethereum"),
@@ -190,15 +182,7 @@ module PriceFactory {
           let response_body : Blob = Blob.fromArray(httpResponse.body);
           let decoded_text : Text = switch (Text.decodeUtf8(response_body)) {
               case (null) { "No value returned from service" };
-              case (?decoded_text) {
-                  //Debug.print("Decoded text: " # debug_show(decoded_text));
-                  // Decoded text: "{"ethereum":{"usd":2427.22}}"
-                  // let options: Serde.Options = 
-                  // { 
-                  //   renameKeys = [(coingecko_id, "result")]
-                  // };
-                  // Debug.print("renaming key: " # debug_show(coingecko_id));
-                  // let #ok(blob) = JSON.fromText(decoded_text, null) else return 0;
+              case (?decoded_text) {                 
                   // "{"ethereum":{"usd":2427.22}}"
                   var thing = Text.replace(decoded_text, #char '{', "");
                   thing := Text.replace(thing, #char '}', "");
@@ -265,13 +249,10 @@ module PriceFactory {
       Debug.print("fetching prices from KRAKEN ... " # debug_show(match));      
       
       let cgurl = "https://api.kraken.com/0/public/Ticker?pair=" # kraken_id;
-
       let idempotencyKey = Utils.textToSha(cgurl);
-      Debug.print("fetching prices from idempotencyKey ... " # debug_show(idempotencyKey));
-
+      //Debug.print("fetching prices from idempotencyKey ... " # debug_show(idempotencyKey));
       let httpRequest : HttpTypes.HttpRequestArgs = {
-        url = cgurl;
-        //max_response_bytes = ?Nat64.fromNat(250_000); //TODO:
+        url = cgurl;        
         max_response_bytes = ?Nat64.fromNat(2000); //TODO:
         headers = [
             { name = "Content-Type"; value = "application/json" },
@@ -280,17 +261,9 @@ module PriceFactory {
         body = null;
         method = #get;
         transform = null;
-      };
-
-      //49.14M + 5200 * request_size + 10400 * max_response_bytes
-      // 49.14M + (5200 * 1000) + (10400 * 1000) = 64.74M
-      Cycles.add(1_000_000_000);
-
-      // Send the request
-      let httpResponse : HttpTypes.HttpResponsePayload = await ic.http_request(httpRequest);  
-      
-      Debug.print("HttpResponsePayload STATUS: " # debug_show(httpResponse.status));
-      // Check the response
+      };      
+      Cycles.add(1_000_000_000);      
+      let httpResponse : HttpTypes.HttpResponsePayload = await ic.http_request(httpRequest);
       if (httpResponse.status == 200) {                
           let response_body : Blob = Blob.fromArray(httpResponse.body);
           let decoded_text : Text = switch (Text.decodeUtf8(response_body)) {
@@ -363,8 +336,7 @@ module PriceFactory {
       let token_results : ?[TokenResult] = from_candid(blob);
       switch(token_results){
           case null return null;
-          case(?token_results){                
-              //Debug.print("getUSDTokenPriceWorkaround  token_results " # debug_show(token_results));
+          case(?token_results){
               let match : TokenResult = Array.filter<TokenResult>(token_results, func x = x.name == ?token)[0];
               let cg_price = Option.get(match.usd, "0");
               let p = await Utils.textToFloat(cg_price);
@@ -380,11 +352,8 @@ module PriceFactory {
           Debug.print("ERROR - no actor found for context !");
           return "0";
         };
-        let main_actor : HttpTypes.MainActor = actor (main_actor_id);
-        //Debug.print("STARTING getTokenJsonFromSupercartService " # debug_show(Utils.now()));        
-        let idempotencyKey : Text = Utils.textToSha(Text.concat("getTokenJsonFromSupercartService workaround tokens", token));
-        //Debug.print("idempotencyKey " # debug_show(idempotencyKey));
-
+        let main_actor : HttpTypes.MainActor = actor (main_actor_id);         
+        let idempotencyKey : Text = Utils.textToSha(Text.concat("getTokenJsonFromSupercartService workaround tokens", token));        
         let custom_webhook_url = "https://tokens--supercartd.netlify.app/.netlify/functions/notify";
         let max_expected_response = 5000;
 
@@ -418,8 +387,7 @@ module PriceFactory {
         
         Cycles.add(500_000_000);        
         let httpResponse : HttpTypes.HttpResponsePayload = await ic.http_request(httpRequest);        
-        if (httpResponse.status == 200) {
-            Debug.print("HttpResponsePayload 200");
+        if (httpResponse.status == 200) {            
             let response_body : Blob = Blob.fromArray(httpResponse.body);
             let decoded_text : Text = switch (Text.decodeUtf8(response_body)) {                
                 case (null) { "No value returned" };

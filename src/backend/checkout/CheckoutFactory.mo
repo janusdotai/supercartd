@@ -77,8 +77,9 @@ module CheckoutFactory {
             // };
 
             return true;
-        };       
+        };
 
+        
         public func getProducts() : [(Text, SupdTypes.Product)] {            
             let ok = Map.filterDesc(productStore, thash, func(k : Text, yo : SupdTypes.Product) : Bool {
                 yo.cid == checkout_id;
@@ -86,8 +87,7 @@ module CheckoutFactory {
             return Map.toArray(ok);
         };
 
-        public func getProduct(pid : Text) : ?SupdTypes.Product {
-            //func find<K, V>(map: Map<K, V>, acceptEntry: (K, V) -> Bool): ?(K, V)
+        public func getProduct(pid : Text) : ?SupdTypes.Product {            
             let ok = Map.find(productStore, func(k : Text, yo : SupdTypes.Product) : Bool {
                 yo.cid == checkout_id and yo.pid == pid;
             });
@@ -136,14 +136,12 @@ module CheckoutFactory {
             };
             return sv;
         };
-
         
         private func calculateTokenDenomination(units_per_token : Float, decimals : Int) : Text {            
             let multiple = Float.pow(10, Float.fromInt(decimals));
             let result = Float.mul(units_per_token, multiple);            
             return Int.toText(Float.toInt(result)); //amt in wei
         };
-
      
         public func calculateCartTotals(cart : SupdTypes.ShoppingCart) : SupdTypes.CartTotals {
             var grand_total = 0.00;

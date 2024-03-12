@@ -132,8 +132,7 @@ module Web3Helper {
             };            
             let response = await callEVM(request);            
             let stripped = safeTransformEvm(response.result);
-            let #ok(h) = Hex.decode(stripped) else return { block = 0; block_encoded = "";  };
-            
+            let #ok(h) = Hex.decode(stripped) else return { block = 0; block_encoded = "";  };            
             var safeValue = AU.toNat256(h);            
             let r : EthGetBlockNumberResponse = {
                 block = safeValue;
@@ -167,8 +166,7 @@ module Web3Helper {
                     //decimals: 8
                     let amt = round.answer;    
                     let decimals = round.decimals;                
-                    var usd = insertDecmialForChainlinkRound(Nat.toText(amt), decimals);
-                    //var usd = Utils.textToFloat(t);
+                    var usd = insertDecmialForChainlinkRound(Nat.toText(amt), decimals);                    
                     Debug.print("chainlink_latestPriceUSD " # debug_show(usd));
                     return usd;
                 };
@@ -187,15 +185,14 @@ module Web3Helper {
                     //decimals: 8
                     let amt = round.answer;    
                     let decimals = round.decimals;                
-                    var usd = insertDecmialForChainlinkRound(Nat.toText(amt), decimals);
-                    //Debug.print("chainlink_latestFxRateUSD " # debug_show(usd));
+                    var usd = insertDecmialForChainlinkRound(Nat.toText(amt), decimals);                    
                     return usd;
                 };
             };
             return result;
         };
         
-       
+        //calls chainlink feed for latest round data
         private func chainlink_getLatestRound(_selected_token : Types.TokenCurrency) : async ?ChainlinkLatesRoundData {
             assert(pre_init() == true);
             let abi = decode_abi(CHAINLINK_ABI);
@@ -290,7 +287,7 @@ module Web3Helper {
             return null;
         };   
 
-        
+        //calls chainlink feed for latest fx round data
         public func chainlink_getCurrencyExchangeRate(_currency : Types.Currency) : async ?ChainlinkLatesRoundData {
             assert(pre_init() == true);            
             let abi = decode_abi(CHAINLINK_ABI);
@@ -311,9 +308,7 @@ module Web3Helper {
                     let countryCode = match.0;        
                     let contract = match.1;                    
                     let decimals = match.2;
-                    // Debug.print("chainlink_getCurrencyExchangeRate countryCode: " # debug_show(countryCode));
-                    // Debug.print("chainlink_getCurrencyExchangeRate contract: " # debug_show(contract));
-                    // Debug.print("chainlink_getCurrencyExchangeRate decimals: " # debug_show(decimals));
+
                     if(Text.size(contract) == 0 or decimals == 0){
                         Debug.print("ERROR - NO CHAINLINK MAPPING FOUND: " # debug_show(countryCode));
                         return null;
@@ -331,8 +326,7 @@ module Web3Helper {
                         params = [p];
                     };
                     
-                    let res = await callEVM(req);
-                    //Debug.print("callChainlinkFeed call result : " # debug_show(res));
+                    let res = await callEVM(req);                    
                     let encoded_response = res.result;
                     if(encoded_response == "0x" or encoded_response == "0X"){
                         Debug.print("callChainlinkFeed ERROR no result returned " # debug_show(res));
@@ -379,7 +373,7 @@ module Web3Helper {
             return null;
         };          
         
-
+        //calls JSON RPC EVM provider
         private func callEVM(request : EthJsonRpcRequest) : async EthJsonRpcResult {
             let e = _ent();
             let before : Text = Text.concat(e # selected_provider, Nat64.toText(Utils.now()));                        
@@ -396,9 +390,8 @@ module Web3Helper {
             Debug.print("Set jsonRequest: " # debug_show(jsonRequest));
 
             let requestBodyAsBlob : Blob = Text.encodeUtf8(jsonRequest);
-            let requestBodyAsNat8 : [Nat8] = Blob.toArray(requestBodyAsBlob);
+            let requestBodyAsNat8 : [Nat8] = Blob.toArray(requestBodyAsBlob);            
             
-            // Setup request
             let httpRequest : HttpTypes.HttpRequestArgs = {
                 url = selected_provider;
                 max_response_bytes = ?Nat64.fromNat(2000); //todo
@@ -410,12 +403,9 @@ module Web3Helper {
                 method = #post;
                 transform = null;
             };
-                       
-            // 49.14M + 5200 * request_size + 10400 * max_response_bytes
-            // 49.14M + (5200 * 1000) + (10400 * 1000) = 64.74M
+                                
             Cycles.add(1_000_000_000);
-
-            // Send the request
+            
             let httpResponse : HttpTypes.HttpResponsePayload = await ic.http_request(httpRequest);
             Debug.print("HttpResponsePayload STATUS: " # debug_show(httpResponse.status));    
             if (httpResponse.status == 200) {                
@@ -428,9 +418,7 @@ module Web3Helper {
                         let ethJsonResult : ?EthJsonRpcResult = from_candid(blob);
                         Debug.print("EthJsonRpcResult deserialized: " # debug_show(ethJsonResult));                        
                         switch(?ethJsonResult){
-                            case null{
-                                return result;
-                            };
+                            case null return result;
                             case(?ethJsonResult){                                
                                 Debug.print("EthJsonRpcResult success parsed case: " # debug_show(ethJsonResult)); 
                                 let thing = Option.get<EthJsonRpcResult>(ethJsonResult, result);

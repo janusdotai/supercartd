@@ -26,7 +26,6 @@ import Types "../Types";
 import Utils "../Utils";
 import Map "mo:map/Map";
 import HttpTypes "../http/http.types";
-//import { JSON; Candid; } "mo:serde";
 import { JSON; Candid; CBOR; URLEncoded } "mo:serde";
 import Web3Helper "../blockchain/web3helper";
 
@@ -106,12 +105,10 @@ module {
         };
     
 
-        private func getFXChainlink(currency : Types.Currency) : async Float {
-            //let provider = "https://eth.llamarpc.com";
+        private func getFXChainlink(currency : Types.Currency) : async Float {            
             let provider = await Utils.randomProvider();
             let web3 = Web3Helper.Web3(provider, true);
-            let usd_price = await web3.chainlink_latestFxRateUSD(currency);
-            //Debug.print("getFXChainlink ... " # debug_show(usd_price));
+            let usd_price = await web3.chainlink_latestFxRateUSD(currency);            
             return await Utils.textToFloat(usd_price);
         };
 
@@ -204,13 +201,11 @@ module {
             Debug.print("STARTING getForexJsonFromSupercartService " # debug_show(Utils.now()));        
             let idempotencyKey : Text = Utils.textToSha(Text.concat("getForexJsonFromSupercartService workaround fx", currencyToText(currency)));
             let custom_webhook_url = "https://supercart-fx.netlify.app/.netlify/functions/notify";
-            let max_expected_response = 1000;
-            
+            let max_expected_response = 1000;            
             let transform_context : HttpTypes.TransformRawResponseFunction = {
                 function = main_actor.transform_response;
                 context = Blob.fromArray([]);
-            };
-            
+            };            
             let httpRequest : HttpTypes.HttpRequestArgs = {            
                 url = custom_webhook_url;
                 max_response_bytes = ?Nat64.fromNat(max_expected_response);
@@ -226,8 +221,7 @@ module {
             Cycles.add(500_000_000); //TODO:
             
             let httpResponse : HttpTypes.HttpResponsePayload = await ic.http_request(httpRequest);            
-            if (httpResponse.status == 200) {
-                Debug.print("HttpResponsePayload 200");
+            if (httpResponse.status == 200) {                
                 let response_body : Blob = Blob.fromArray(httpResponse.body);
                 let decoded_text : Text = switch (Text.decodeUtf8(response_body)) {                
                     case (null) { "No value returned" };

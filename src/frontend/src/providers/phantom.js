@@ -95,7 +95,7 @@ class PhantomWallet {
                 toPubkey: recieverWallet,
                 lamports: token_denomination
                 //lamports: solanaWeb3.LAMPORTS_PER_SOL //Investing 1 SOL. Remember 1 Lamport = 10^-9 SOL.
-            })            
+            })
         );
 
         // Setting the variables for the transaction
@@ -109,10 +109,13 @@ class PhantomWallet {
         let signature = await connection.sendRawTransaction(signed.serialize());        
         let pkg2 = { signature: signature };
         LOADING.setLoading(true, "Sending transaction please wait ... ");
-        pushNotify("info", "Phantom", "Sending transaction please wait ... ", 8000)
+        pushNotify("info", "Phantom", "Sending transaction please wait", 8000)
+        console.log(pkg2)
+
         let sol_tx = await connection.confirmTransaction(pkg2);
-        sol_tx["sig"] = signature;        
+        sol_tx["sig"] = signature;
         console.log("sol_tx: ", sol_tx);
+        
         return sol_tx;
     }
     
@@ -137,8 +140,9 @@ class PhantomWallet {
                 throw new Error("Alchemy key not found");
             }
             
-            const tx_result = await this.transferSOL(from, to, token_denomination);          
-            //console.log(tx_result) 
+            const tx_result = await this.transferSOL(from, to, token_denomination);
+            console.log(tx_result) 
+
             let slot = tx_result.context.slot.toString();
             let hash = tx_result.sig.toString();
             let return_tx = { "transactionHash": hash, "cumulativeGasUsed": "", "blockNumber": slot };

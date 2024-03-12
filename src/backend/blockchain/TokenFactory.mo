@@ -99,7 +99,7 @@ module TokenFactory {
       for(search_token in token_matches.vals()){
         var chain_match = Array.find<Types.TokenChain>(search_token.chains, func(x) = x == chain);
         if(chain_match != null){
-          Debug.print("getTokenDetails subSearch returned " # debug_show(chain_match));
+          //Debug.print("getTokenDetails subSearch returned " # debug_show(chain_match));
           return ?search_token;
         };
       };
