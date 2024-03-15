@@ -20,6 +20,7 @@ import Buffer "mo:base/Buffer";
 import Int "mo:base/Int";
 import Iter "mo:base/Iter";
 import List "mo:base/List";
+import Prelude "mo:base/Prelude";
 import Map "mo:map/Map";
 import { thash } "mo:map/Map";
 import Sha256 "mo:sha2/Sha256";
@@ -36,6 +37,9 @@ import PriceF "blockchain/PriceFactory";
 import CheckoutFactory "checkout/CheckoutFactory";
 import PaymentFactory "payments/PaymentFactory";
 import TokenFactory "blockchain/TokenFactory";
+
+import Canistergeek "mo:canistergeek/canistergeek";
+
 shared ({caller = owner}) actor class Main() = this {
 
     private let FX_CACHE_TIME_SECONDS : Nat = 600;  //10 min cache    
@@ -50,6 +54,28 @@ shared ({caller = owner}) actor class Main() = this {
     private stable var paymentStore = Map.new<Text, SupdTypes.CheckoutPaymentSetting>();
     private stable var orderStore = Map.new<Text, SupdTypes.Order>();
     private stable var receiptStore = Map.new<Text, SupdTypes.OrderReceipt>();
+
+    stable var _canistergeekMonitorUD: ? Canistergeek.UpgradeData = null; 
+    private let canistergeekMonitor = Canistergeek.Monitor();    
+    stable var _canistergeekLoggerUD: ? Canistergeek.LoggerUpgradeData = null;
+    private let canistergeekLogger = Canistergeek.Logger();
+    private let adminPrincipal: Text = "zibsr-yjvod-nw6md-gatn4-pcg5t-3ibwf-vht7j-eh2mq-aeyoc-cykrq-uqe";
+
+    system func preupgrade() {
+        _canistergeekMonitorUD := ? canistergeekMonitor.preupgrade();
+        _canistergeekLoggerUD := ? canistergeekLogger.preupgrade();
+    };
+
+    system func postupgrade() { 
+        canistergeekMonitor.postupgrade(_canistergeekMonitorUD);
+        _canistergeekMonitorUD := null;
+        
+        canistergeekLogger.postupgrade(_canistergeekLoggerUD);
+        _canistergeekLoggerUD := null;
+        canistergeekLogger.setMaxMessagesCount(3000);
+        
+        canistergeekLogger.logMessage("postupgrade");
+    };
    
     public query (msg) func whoami() : async Principal {
         return msg.caller;
@@ -100,7 +126,7 @@ shared ({caller = owner}) actor class Main() = this {
         return t;
     };    
 
-     //get tokens - serves from 1 min cache 
+     //get tokens - serves from cache 
     public query func getTokensWithQuotes() : async [SupdTypes.Token] {        
         let f = TokenF.TokenFactory(true);
         let bootstrap = f.getTokens();        
@@ -170,7 +196,7 @@ shared ({caller = owner}) actor class Main() = this {
 
 
     /* -------------------FX----------------------- */
-    //get currencies supported - serves from 1 min cache 
+    //get currencies supported - serves from cache 
     public shared query func getCurrencies() : async ?[SupdTypes.CurrencyQuote] {        
         let f = CurrencyF.CurrencyFactory("", true);
         let bootstrap = f.getFxBootstrap();
@@ -189,7 +215,7 @@ shared ({caller = owner}) actor class Main() = this {
         return ?List.toArray(result);
     };
 
-    //get fx quote with details - serves from 1 min cache
+    //get fx quote with details - serves from cache
     public func getQuote(fx_symbol : Text) : async ?SupdTypes.CurrencyQuote {
         let cached = getQuoteCached(fx_symbol);        
         if(cached != null){
@@ -333,6 +359,7 @@ shared ({caller = owner}) actor class Main() = this {
 
     //update merchant payment setting instance
     public shared (context) func updatePaymentSetting(slug : Text, chain : Text, dest : Text, enabled : Bool) : async Bool {
+        canistergeekMonitor.collectMetrics();
         let caller : Principal = context.caller;
         assert(Principal.isAnonymous(caller) != true);
         let mkey = merchantKey(Principal.toText(caller));
@@ -433,6 +460,7 @@ shared ({caller = owner}) actor class Main() = this {
     //PUBLIC NO validation - not logged in II    
     //TODO: :  rate limit somehow + client server nonce
     public shared (context) func createQuoteForCart(cid : Text, token : Text, chain : Text, cart : SupdTypes.ShoppingCart) : async SupdTypes.Response<?SupdTypes.CartQuoteResponse> {
+        canistergeekMonitor.collectMetrics();
         var tf = TokenFactory.TokenFactory(true);
         let merchant = Map.find(mstore, func(k : Text, yo : SupdTypes.Merchant) : Bool {
             yo.cid == cid
@@ -494,7 +522,8 @@ shared ({caller = owner}) actor class Main() = this {
 
     //TODO: :  server side evm/chain check    
     //create an order for a hash
-    public shared (context) func createOrder(cid: Text, token : Text, chain : Text, block_height: Text, tx_hash : Text, cart : SupdTypes.ShoppingCart, source_wallet : Text, dest_wallet : Text, amt : Float, gas : Text) : async SupdTypes.Response<SupdTypes.OrderReceipt> {         
+    public shared (context) func createOrder(cid: Text, token : Text, chain : Text, block_height: Text, tx_hash : Text, cart : SupdTypes.ShoppingCart, source_wallet : Text, dest_wallet : Text, amt : Float, gas : Text) : async SupdTypes.Response<SupdTypes.OrderReceipt> {     
+        canistergeekMonitor.collectMetrics();    
         var tf = TokenFactory.TokenFactory(true);
         var chain_match = tf.chainFromTextOrTrap(chain);
         var token_currency_match = await tf.getToken(token);
@@ -770,6 +799,7 @@ shared ({caller = owner}) actor class Main() = this {
     };
 
     public shared (context) func updateMerchant(merchant : SupdTypes.Merchant) : async SupdTypes.Response<SupdTypes.Merchant> {
+        canistergeekMonitor.collectMetrics();
         let caller : Principal = context.caller;
         if(Principal.isAnonymous(caller)){
             return {
@@ -903,6 +933,7 @@ shared ({caller = owner}) actor class Main() = this {
 
 
     public shared (context) func updateMerchantProduct(cid : Text, product : SupdTypes.Product) : async SupdTypes.Response<SupdTypes.Product> {        
+        canistergeekMonitor.collectMetrics();
         let caller : Principal = context.caller;
         if(Principal.isAnonymous(caller)){
             return {
@@ -1086,6 +1117,29 @@ shared ({caller = owner}) actor class Main() = this {
 
     private func merchantProductKey(x : Text) : Trie.Key<Text> {
         return { hash = Text.hash(x); key = x };
+    };
+
+    /* ------------------- CANISTERGEEK ----------------------- */
+    public query ({caller}) func getCanisterMetrics(parameters: Canistergeek.GetMetricsParameters): async ?Canistergeek.CanisterMetrics {
+        validateCaller(caller);
+        canistergeekMonitor.getMetrics(parameters);
+    };
+
+    public shared ({caller}) func collectCanisterMetrics(): async () {
+        validateCaller(caller);
+        canistergeekMonitor.collectMetrics();
+    };
+    
+    public query ({caller}) func getCanisterLog(request: ?Canistergeek.CanisterLogRequest) : async ?Canistergeek.CanisterLogResponse {
+        validateCaller(caller);
+        return canistergeekLogger.getLog(request);
+    };
+    
+    private func validateCaller(principal: Principal) : () {
+        //data is available only for specific principal
+        if (not (Principal.toText(principal) == adminPrincipal)) {
+            Prelude.unreachable();
+        };
     };
     
 };

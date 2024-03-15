@@ -33,7 +33,7 @@ import Serde "mo:serde";
 import { JSON; Candid; CBOR; } "mo:serde";
 
 //All prices in USD as base currency
-//loops through services defined and fetches best price for a given token
+//loops through services defined and averages the prices
 //more services = better price accuracy at the cost of https outcall congestion
 //3/9/2024 - prices are being fetched from a single source and cached FX_CACHE_TIME_SECONDS to avoid outcall congestion
 //TODO: - onchain direct prices / threading?
