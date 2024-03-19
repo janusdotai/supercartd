@@ -100,7 +100,7 @@ This platfrom was built with [Svelte](https://svelte.dev) and [Motoko](https://i
 
 ### Prices
 
-- As of [3/4/2024] pricing is being pulled from a custom Supercart netlify function as the [EVM canister](https://internetcomputer.org/docs/current/developer-docs/multi-chain/ethereum/evm-rpc) was just released and didn't make this version. I'll work to continue making the pricing engine more robust and transparent including using the [Exchange Rate canister](https://internetcomputer.org/docs/current/developer-docs/defi/exchange-rate-canister).
+- As of [3/4/2024] pricing is being pulled from a custom [Supercart netlify](https://github.com/janusdotai/supercartd_shim) function as the [EVM canister](https://internetcomputer.org/docs/current/developer-docs/multi-chain/ethereum/evm-rpc) was just released and didn't make this version. I'll work to continue making the pricing engine more robust and transparent including using the [Exchange Rate canister](https://internetcomputer.org/docs/current/developer-docs/defi/exchange-rate-canister).
 
 - This version has support for calling chainlink directly via public RPCs to get onchain pricing. It also tries to fetch from CoinGecko and a few other services
 
@@ -131,4 +131,4 @@ This platfrom was built with [Svelte](https://svelte.dev) and [Motoko](https://i
 
 ![Demo 2](/docs/scdemo2.gif)
 
-![Demo 3](/docs/scdemo3.PNG)
+![Demo 4](/docs/scd_icp_mainnet.PNG)
